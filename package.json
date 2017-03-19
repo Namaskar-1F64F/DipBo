@@ -1,0 +1,18 @@
+{
+  "name": "sven",
+  "version": "1.0.0",
+  "description": "webdip telegram bot",
+  "main": "index.js",
+  "dependencies": {
+    "jsdom": "^9.12.0",
+    "node-emoji": "^1.5.1",
+    "node-telegram-bot-api": "^0.27.0",
+    "object-hash": "^1.1.7"
+  },
+  "devDependencies": {},
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "",
+  "license": "ISC"
+}
