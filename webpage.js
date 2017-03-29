@@ -6,20 +6,24 @@ module.exports = {
         var jElement,
             status,
             country,
-            readyStates = {'countries': [], 'readyCount': 0, 'readyCountries':[], 'unreadyCountries':[]};
+            readyStates = {'status': {'ready':[],'notreceived':[],'completed':[],'none':[], 'defeated':[]}};
         // look through all countries status and check if the img is a green check.
         window.$.each(window.$('.memberCountryName'), function (idx, element) {
             var jElement = window.$(element); // need jQuery object
             var status = jElement.find('img').attr('alt'); // green check
-            var country = jElement.text().substring(2); // there are 2 spaces after img
+            var country = jElement.text().trim(); // there are 2 spaces after img
             var defeated = jElement.hasClass('memberStatusDefeated');
-            readyStates.countries.push({name:country,status:status, defeated: defeated});
-            if (status == "Ready") { // add up all ready countries and put their flags into a string
-                readyStates.readyCount++;
-                readyStates.readyCountries += " " + util.getEmoji(country);
+            if(defeated){
+                readyStates.status.defeated.push(country);
             }
-            else // add up all unready countries into a string
-                readyStates.unreadyCountries += " " + util.getEmoji(country);
+            else if(status == "Ready")
+                readyStates.status.ready.push(country);
+            else if(status=="Completed")
+                readyStates.status.completed.push(country);
+            else if(status == "Not received")
+                readyStates.status.notreceived.push(country);
+            else
+                readyStates.status.none.push(country.replace('- ', ''));
         });
         return readyStates;
     },
@@ -28,5 +32,8 @@ module.exports = {
     },
     getYear: function(window){
         return window.$('.gameDate').text();
+    },
+    getTime: function(window){
+        return window.$('.timeremaining').text();
     }
 };

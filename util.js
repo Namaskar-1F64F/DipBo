@@ -3,6 +3,7 @@ var winston = require('winston'),
     emoji = require('node-emoji'); // country flags
 
 module.exports = {
+    token: "",
     timeAllowed: function () {
         var date = new Date();
         return (date.getHours() < 24 && date.getHours() > 7);

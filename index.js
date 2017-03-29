@@ -1,16 +1,17 @@
-var TelegramBot = require('node-telegram-bot-api'),
-    telegram = new TelegramBot("353368837:AAEO2RFkHE9lhKMeCpy8peGFxcftV4hLJ9M", {polling: true}),
+var setup = require('./setup.js'),
+    webpage = require('./webpage.js'),
+    util = require('./util.js'),
+    TelegramBot = require('node-telegram-bot-api'),
+    telegram = new TelegramBot(util.token, {polling: true}),
     jsdom = require("jsdom"), // used to create dom to navigate through jQuery
     fs = require('fs'), // storing json to disk
     hash = require('object-hash'), // hashing messages for quick lookups
-    setup = require('./setup.js'),
-    webpage = require('./webpage.js'),
-    util = require('./util.js'),
     winston = require('winston'),
     sanitizeHtml = require('sanitize-html'),
+    subscribed = {}, // use subscribed object to ensure multiple check intervals for same cid don't happen
     countries = ["England", "France", "Italy", "Germany", "Austria", "Turkey", "Russia"];
 
-var checkWebsite = function (cid, gid, wD_Code, wD_Key) {
+var checkWebsite = function (cid, gid) {
     winston.info("Checking game: %s for user: %s.", gid, cid);
     if (subscribed[cid].running == true) {
         winston.info("User: %s subscribed for game %s", cid, gid);
@@ -21,63 +22,76 @@ var checkWebsite = function (cid, gid, wD_Code, wD_Key) {
             ["http://code.jquery.com/jquery.js"],
             function (err, window) {
                 winston.info('Checking for updates.');
-                // ***** Get all messages in global chatbox *****
-                // For each message,
+                // ***** Get all messages in global chatbox ****
                 var newMessages = window.$("#chatboxscroll>table>tbody>tr");
-                //var newMessages = window.$('.variantClassic>table>tbody>tr');
                 // For each message,
-                for (var i = 0; i < newMessages.length; i++) {
-                    var message = {
-                        // countries are found by looking at what class they are -> country1, country2 ...
-                        // so we are taking the substring up to the number
-                        "country": newMessages.eq(i).find('td').eq(1).attr('class').substring(13),
-                        // NEED to replace tags for correct line feeds, and telegram likes <b> not <strong>
-                        "message": util.formatMessageTelegram(newMessages.eq(i).find('td').eq(1).html())
-                    };
-                    currentState.messages[i] = message;
-                    // store message hash into current state hashtable
-                    if (previousState[cid].hashedMessages != undefined) {
-                        // if the hashed message isn't in the previous state, we need to send it
-                        if (previousState[cid].hashedMessages[hash(message)] != true) {
-                            previousState[cid].hashedMessages[hash(message)] = true;
-                            if (!previousState[cid].initialRun && message.indexOf('Autumn, ') == -1 && message.indexOf('Spring, ') == -1) {
-                                var formattedMessage = getEmoji(countries[currentState.messages[i].country - 1])
-                                    + " " + currentState.messages[i].message;
-                                winston.info('Sending global message to %s for %s:\n%s', cid, gid, formattedMessage);
-                                telegram.sendMessage(cid, formattedMessage, {parse_mode: "HTML"});
+                if(window.$('.notice').length==0) {
+                    for (var i = 0; i < newMessages.length; i++) {
+                        var message = {
+                            // countries are found by looking at what class they are -> country1, country2 ...
+                            // so we are taking the substring up to the number
+                            "country": newMessages.eq(i).find('td').eq(1).attr('class').substring(13),
+                            // NEED to replace tags for correct line feeds, and telegram likes <b> not <strong>
+                            "text": util.formatMessageTelegram(newMessages.eq(i).find('td').eq(1).html())
+                        };
+                        // store message hash into current state hashtable
+                        if (previousState[cid].hashedMessages != undefined) {
+                            // if the hashed message isn't in the previous state, we need to send it
+                            if (previousState[cid].hashedMessages[hash(message)] != true) {
+                                previousState[cid].hashedMessages[hash(message)] = true;
+                                if (!previousState[cid].initialRun && message.text.indexOf('Autumn, ') == -1 && message.text.indexOf('Spring, ') == -1) {
+                                    var formattedMessage = getEmoji(countries[currentState.message.country - 1])
+                                        + " " + currentState.message.text;
+                                    winston.info('Sending global message to %s for %s:\n%s', cid, gid, formattedMessage);
+                                    telegram.sendMessage(cid, formattedMessage, {parse_mode: "HTML"});
+                                }
                             }
                         }
                     }
                 }
+                // **** get year and phase ****
+                currentState.phase = webpage.getPhase(window);
+                currentState.year = webpage.getYear(window);
 
                 // **** ready states
-                var timeRemaining = window.$('.timeremaining').text();
+                var timeRemaining = webpage.getTime(window);
                 currentState.readyStates = webpage.getReadyStates(window);
                 // ready count changed, send alert.
-                if (previousState[cid].readyStates.readyCount != currentState.readyStates.readyCount
-                   && currentState.readyStates.readyCount > 2
-                   &&!previousState[cid].initialRun
-                   && currentState.phase != undefined) {
+                if (!previousState[cid].initialRun
+                    &&previousState[cid].readyStates.status.ready.length != currentState.readyStates.status.ready.length
+                    && currentState.readyStates.status.ready.length > 0
+                    && currentState.phase != undefined) {
                     var formattedMessage = currentState.phase + " - *" + currentState.year + "*\n_"
-                        + timeRemaining + " remaining._\n*Ready*      "
-                        + currentState.readyStates.readyCountries + "\n*Unready* "
-                        + currentState.readyStates.unreadyCountries;
+                        + timeRemaining + " remaining._\n*Ready*      ";
+                    for(var i = 0; i<currentState.readyStates.status.ready.length; i++)
+                        formattedMessage += util.getEmoji(currentState.readyStates.status.ready[i]);
+                        formattedMessage += "\n*Unready* ";
+                    for(var i = 0; i<currentState.readyStates.status.completed.length; i++)
+                        formattedMessage += util.getEmoji(currentState.readyStates.status.completed[i]);
+                    for(var i = 0; i<currentState.readyStates.status.notreceived.length; i++)
+                        formattedMessage += util.getEmoji(currentState.readyStates.status.notreceived[i]);
                     winston.info('Sending ready message to %s for %s:\n%s', cid, gid, formattedMessage);
                     telegram.sendMessage(cid, formattedMessage, {parse_mode: "Markdown"});
                 }
 
-                // **** get year
-                currentState.phase = webpage.getPhase(window);
-                currentState.year = webpage.getYear(window);
+
                 if (previousState[cid].year != undefined
                     && previousState[cid].phase != undefined
                     && (previousState[cid].phase != currentState.phase || previousState[cid].year != currentState.year)
                     && !previousState[cid].initialRun) {
                     // send update if year changes
                     var formattedMessage = "The year is *" + currentState.year + "*, " + currentState.phase + "\n";
-                    for( var i = 0; i < currentState.readyStates.countries.length; i++) {
-                        if(!currentState.readyStates.countries[i].defeated)
-                            formattedMessage += util.getEmoji(currentState.readyStates.countries[i].name);
+                    for( var i = 0; i < currentState.readyStates.status.ready.length; i++) {
+                        formattedMessage += util.getEmoji(currentState.readyStates.status.ready[i]);
+                    }
+                    for( var i = 0; i < currentState.readyStates.status.notreceived.length; i++) {
+                        formattedMessage += util.getEmoji(currentState.readyStates.status.notreceived[i]);
+                    }
+                    for( var i = 0; i < currentState.readyStates.status.completed.length; i++) {
+                        formattedMessage += util.getEmoji(currentState.readyStates.status.completed[i]);
+                    }
+                    for( var i = 0; i < currentState.readyStates.status.none.length; i++) {
+                        formattedMessage += util.getEmoji(currentState.readyStates.status.none[i]);
                     }
                     winston.info('Sending ready message to %s for %s:\n%s', cid, gid, formattedMessage);
                     telegram.sendMessage(cid, formattedMessage, {parse_mode: "Markdown"});
@@ -176,10 +190,6 @@ var checkWebsiteP = function (cid, gid, wD_Code, wD_Key) {
     }
 };
 
-// use node-emoji to get flags
-
-// use subscribed object to ensure multiple check intervals for same cid don't happen
-var subscribed = {};
 telegram.on("text", function (message) {
     var cid = message.chat.id;
     if (message.text.toLowerCase().indexOf("/gsubscribe") === 0) { // given monitor message
