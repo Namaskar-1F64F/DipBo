@@ -37,6 +37,21 @@ module.exports = {
             case "germany":
                 return emoji.get('flag-de');
                 break;
+            case "greece":
+                return emoji.get('flag-gr');
+                break;
+            case "egypt":
+                return emoji.get('flag-eg');
+                break;
+            case "rome":
+                return emoji.get('flag-it');
+                break;
+            case "persia":
+                return emoji.get('flag-ir');
+                break;
+            case "carthage":
+                return emoji.get('flag-tn');
+                break;
             default:
                 return emoji.get('face_with_head_bandage');
         }

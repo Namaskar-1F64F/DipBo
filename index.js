@@ -12,100 +12,103 @@ var setup = require('./setup.js'),
     countries = ["England", "France", "Italy", "Germany", "Austria", "Turkey", "Russia"];
 
 var checkWebsite = function (cid, gid) {
-    winston.info("Checking game: %s for user: %s.", gid, cid);
-    if (subscribed[cid].running == true) {
-        winston.info("User: %s subscribed for game %s", cid, gid);
-        var previousState = setup.getPreviousState(cid);
-        var currentState = setup.getCurrentState();
-        jsdom.env(
-            "http://webdiplomacy.net/board.php?gameID=" + gid,
-            ["http://code.jquery.com/jquery.js"],
-            function (err, window) {
-                winston.info('Checking for updates.');
-                // ***** Get all messages in global chatbox ****
-                var newMessages = window.$("#chatboxscroll>table>tbody>tr");
-                // For each message,
-                if(window.$('.notice').length==0) {
-                    for (var i = 0; i < newMessages.length; i++) {
-                        var message = {
-                            // countries are found by looking at what class they are -> country1, country2 ...
-                            // so we are taking the substring up to the number
-                            "country": newMessages.eq(i).find('td').eq(1).attr('class').substring(13),
-                            // NEED to replace tags for correct line feeds, and telegram likes <b> not <strong>
-                            "text": util.formatMessageTelegram(newMessages.eq(i).find('td').eq(1).html())
-                        };
-                        // store message hash into current state hashtable
-                        if (previousState[cid].hashedMessages != undefined) {
-                            // if the hashed message isn't in the previous state, we need to send it
-                            if (previousState[cid].hashedMessages[hash(message)] != true) {
-                                previousState[cid].hashedMessages[hash(message)] = true;
-                                if (!previousState[cid].initialRun && message.text.indexOf('Autumn, ') == -1 && message.text.indexOf('Spring, ') == -1) {
-                                    var formattedMessage = getEmoji(countries[currentState.message.country - 1])
-                                        + " " + currentState.message.text;
-                                    winston.info('Sending global message to %s for %s:\n%s', cid, gid, formattedMessage);
-                                    telegram.sendMessage(cid, formattedMessage, {parse_mode: "HTML"});
+    try {
+        winston.info("Checking game: %s for user: %s.", gid, cid);
+        if (subscribed[cid].running == true) {
+            winston.info("User: %s subscribed for game %s", cid, gid);
+            var previousState = setup.getPreviousState(cid);
+            var currentState = setup.getCurrentState();
+            jsdom.env(
+                "http://webdiplomacy.net/board.php?gameID=" + gid,
+                ["http://code.jquery.com/jquery.js"],
+                function (err, window) {
+                    winston.info('Checking for updates.');
+                    // ***** Get all messages in global chatbox ****
+                    var newMessages = window.$("#chatboxscroll>table>tbody>tr");
+                    // For each message,
+                    if (window.$('.notice').length == 0) {
+                        for (var i = 0; i < newMessages.length; i++) {
+                            var message = {
+                                // countries are found by looking at what class they are -> country1, country2 ...
+                                // so we are taking the substring up to the number
+                                "country": newMessages.eq(i).find('td').eq(1).attr('class').substring(13),
+                                // NEED to replace tags for correct line feeds, and telegram likes <b> not <strong>
+                                "text": util.formatMessageTelegram(newMessages.eq(i).find('td').eq(1).html())
+                            };
+                            // store message hash into current state hashtable
+                            if (previousState[cid].hashedMessages != undefined) {
+                                // if the hashed message isn't in the previous state, we need to send it
+                                if (previousState[cid].hashedMessages[hash(message)] != true) {
+                                    previousState[cid].hashedMessages[hash(message)] = true;
+                                    if (!previousState[cid].initialRun && message.text.indexOf('Autumn, ') == -1 && message.text.indexOf('Spring, ') == -1) {
+                                        var formattedMessage = util.getEmoji(countries[message.country - 1])
+                                            + " " + message.text;
+                                        winston.info('Sending global message to %s for %s:\n%s', cid, gid, formattedMessage);
+                                        telegram.sendMessage(cid, formattedMessage, {parse_mode: "HTML"});
+                                    }
                                 }
                             }
                         }
                     }
-                }
-                // **** get year and phase ****
-                currentState.phase = webpage.getPhase(window);
-                currentState.year = webpage.getYear(window);
+                    // **** get year and phase ****
+                    currentState.phase = webpage.getPhase(window);
+                    currentState.year = webpage.getYear(window);
 
-                // **** ready states
-                var timeRemaining = webpage.getTime(window);
-                currentState.readyStates = webpage.getReadyStates(window);
-                // ready count changed, send alert.
-                if (!previousState[cid].initialRun
-                    &&previousState[cid].readyStates.status.ready.length != currentState.readyStates.status.ready.length
-                    && currentState.readyStates.status.ready.length > 0
-                    && currentState.phase != undefined) {
-                    var formattedMessage = currentState.phase + " - *" + currentState.year + "*\n_"
-                        + timeRemaining + " remaining._\n*Ready*      ";
-                    for(var i = 0; i<currentState.readyStates.status.ready.length; i++)
-                        formattedMessage += util.getEmoji(currentState.readyStates.status.ready[i]);
+                    // **** ready states
+                    var timeRemaining = webpage.getTime(window);
+                    currentState.readyStates = webpage.getReadyStates(window);
+                    // ready count changed, send alert.
+                    if (!previousState[cid].initialRun
+                        && previousState[cid].readyStates.status.ready.length != currentState.readyStates.status.ready.length
+                        && currentState.readyStates.status.ready.length > 0
+                        && currentState.phase != undefined) {
+                        var formattedMessage = currentState.phase + " - *" + currentState.year + "*\n_"
+                            + timeRemaining + " remaining._\n*Ready*      ";
+                        for (var i = 0; i < currentState.readyStates.status.ready.length; i++)
+                            formattedMessage += util.getEmoji(currentState.readyStates.status.ready[i]);
                         formattedMessage += "\n*Unready* ";
-                    for(var i = 0; i<currentState.readyStates.status.completed.length; i++)
-                        formattedMessage += util.getEmoji(currentState.readyStates.status.completed[i]);
-                    for(var i = 0; i<currentState.readyStates.status.notreceived.length; i++)
-                        formattedMessage += util.getEmoji(currentState.readyStates.status.notreceived[i]);
-                    winston.info('Sending ready message to %s for %s:\n%s', cid, gid, formattedMessage);
-                    telegram.sendMessage(cid, formattedMessage, {parse_mode: "Markdown"});
+                        for (var i = 0; i < currentState.readyStates.status.completed.length; i++)
+                            formattedMessage += util.getEmoji(currentState.readyStates.status.completed[i]);
+                        for (var i = 0; i < currentState.readyStates.status.notreceived.length; i++)
+                            formattedMessage += util.getEmoji(currentState.readyStates.status.notreceived[i]);
+                        winston.info('Sending ready message to %s for %s:\n%s', cid, gid, formattedMessage);
+                        telegram.sendMessage(cid, formattedMessage, {parse_mode: "Markdown"});
+                    }
+
+
+                    if (previousState[cid].year != undefined
+                        && previousState[cid].phase != undefined
+                        && (previousState[cid].phase != currentState.phase || previousState[cid].year != currentState.year)
+                        && !previousState[cid].initialRun) {
+                        // send update if year changes
+                        var formattedMessage = "The year is *" + currentState.year + "*, " + currentState.phase + "\n";
+                        for (var i = 0; i < currentState.readyStates.status.ready.length; i++) {
+                            formattedMessage += util.getEmoji(currentState.readyStates.status.ready[i]);
+                        }
+                        for (var i = 0; i < currentState.readyStates.status.notreceived.length; i++) {
+                            formattedMessage += util.getEmoji(currentState.readyStates.status.notreceived[i]);
+                        }
+                        for (var i = 0; i < currentState.readyStates.status.completed.length; i++) {
+                            formattedMessage += util.getEmoji(currentState.readyStates.status.completed[i]);
+                        }
+                        for (var i = 0; i < currentState.readyStates.status.none.length; i++) {
+                            if (currentState.readyStates.status.none[i].toLowerCase() != "germany")
+                                formattedMessage += util.getEmoji(currentState.readyStates.status.none[i]);
+                        }
+                        winston.info('Sending ready message to %s for %s:\n%s', cid, gid, formattedMessage);
+                        telegram.sendMessage(cid, formattedMessage, {parse_mode: "Markdown"});
+                    }
+
+                    // we need to now save current state to compare to next update.
+                    previousState[cid].year = currentState.year;
+                    previousState[cid].readyStates = currentState.readyStates;
+                    previousState[cid].initialRun = false;
+                    previousState[cid].phase = currentState.phase;
+                    fs.writeFileSync(cid + '.json', JSON.stringify(previousState[cid]), "utf8");
                 }
-
-
-                if (previousState[cid].year != undefined
-                    && previousState[cid].phase != undefined
-                    && (previousState[cid].phase != currentState.phase || previousState[cid].year != currentState.year)
-                    && !previousState[cid].initialRun) {
-                    // send update if year changes
-                    var formattedMessage = "The year is *" + currentState.year + "*, " + currentState.phase + "\n";
-                    for( var i = 0; i < currentState.readyStates.status.ready.length; i++) {
-                        formattedMessage += util.getEmoji(currentState.readyStates.status.ready[i]);
-                    }
-                    for( var i = 0; i < currentState.readyStates.status.notreceived.length; i++) {
-                        formattedMessage += util.getEmoji(currentState.readyStates.status.notreceived[i]);
-                    }
-                    for( var i = 0; i < currentState.readyStates.status.completed.length; i++) {
-                        formattedMessage += util.getEmoji(currentState.readyStates.status.completed[i]);
-                    }
-                    for( var i = 0; i < currentState.readyStates.status.none.length; i++) {
-                        formattedMessage += util.getEmoji(currentState.readyStates.status.none[i]);
-                    }
-                    winston.info('Sending ready message to %s for %s:\n%s', cid, gid, formattedMessage);
-                    telegram.sendMessage(cid, formattedMessage, {parse_mode: "Markdown"});
-                }
-
-                // we need to now save current state to compare to next update.
-                previousState[cid].year = currentState.year;
-                previousState[cid].readyStates = currentState.readyStates;
-                previousState[cid].initialRun = false;
-                previousState[cid].phase = currentState.phase;
-                fs.writeFileSync(cid + '.json', JSON.stringify(previousState[cid]), "utf8");
-            }
-        );
-    }
+            );
+        }
+    }catch (err){winston.info(err);}
 };
 
 var checkWebsiteP = function (cid, gid, wD_Code, wD_Key) {
@@ -174,7 +177,8 @@ var checkWebsiteP = function (cid, gid, wD_Code, wD_Key) {
                         if (previousState[cid].hashedMessages[hash(currentState.messages[i])] != true) {
                             previousState[cid].hashedMessages[hash(currentState.messages[i])] = true;
                             console.log("sending global message to " + cid + " for " + gid);
-                            if (!previousState[cid].initialRun && currentState.messages[i].message.indexOf(", from you")==-1&&currentState.messages[i].message.indexOf('To: Global,')==-1) telegram.sendMessage(cid, getEmoji(countries[currentState.messages[i].country - 1])
+                            if (!previousState[cid].initialRun && currentState.messages[i].message.indexOf(", from you")==-1&&currentState.messages[i].message.indexOf('To: Global,')==-1)
+                                telegram.sendMessage(cid, getEmoji(countries[currentState.messages[i].country - 1])
                                 + " " + currentState.messages[i].message, {parse_mode: "HTML"});
                         }
                     }
@@ -193,11 +197,17 @@ var checkWebsiteP = function (cid, gid, wD_Code, wD_Key) {
 telegram.on("text", function (message) {
     var cid = message.chat.id;
     if (message.text.toLowerCase().indexOf("/gsubscribe") === 0) { // given monitor message
+        var split = message.text.split(' ');
+        if(split[2]!=undefined)cid = split[2];
         if (subscribed[cid] == undefined) subscribed[cid] = {'running': false, 'interval': -1};
         if (subscribed[cid].running != true) {
             subscribed[cid].running = true;
-            var split = message.text.split(' ');
-            checkWebsite(cid, split[1]);
+            if(util.timeAllowed()) {
+                checkWebsite(cid, split[1]);
+            }
+            else{
+                winston.info("Tried to check website, but was not allowed.");
+            }
             subscribed[cid].interval = setInterval(function () {
                 if(util.timeAllowed()) {
                     checkWebsite(cid, split[1]);
@@ -208,10 +218,16 @@ telegram.on("text", function (message) {
             }, 300000);
         }
         else {
-            checkWebsite(cid, "194050");
+            if(util.timeAllowed()) {
+                //checkWebsite(cid, "194050");
+            }
+            else{
+                winston.info("Tried to check website, but was not allowed.");
+            }
         }
     }
     else if (message.text.toLowerCase().indexOf("/stop") === 0) {
+        winston.info("Stopping subscription for %s", cid);
         clearInterval(subscribed[cid].interval);
         subscribed[cid].running = false;
     }
