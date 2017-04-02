@@ -14,7 +14,8 @@ var setup = require('./setup.js'),
 var checkWebsite = function (cid, gid) {
     try {
         winston.info("Checking game: %s for user: %s.", gid, cid);
-        if (subscribed[cid].running == true) {
+        if (subscribed[cid].running != true) {
+        } else {
             winston.info("User: %s subscribed for game %s", cid, gid);
             var previousState = setup.getPreviousState(cid);
             var currentState = setup.getCurrentState();
@@ -57,10 +58,15 @@ var checkWebsite = function (cid, gid) {
                     // **** ready states
                     var timeRemaining = webpage.getTime(window);
                     currentState.readyStates = webpage.getReadyStates(window);
+                    var numWithOrders = 7 - currentState.readyStates.status.none.length;
+                    var numToDisplay = numWithOrders - 3 > 0 ? numWithOrders - 3 : 0;
+                    winston.info("There are %s current countries with no status. " +
+                        " The number with orders is %s so we are going to display  when >%s countries are ready.",
+                        currentState.readyStates.status.none.length, numWithOrders, numToDisplay);
                     // ready count changed, send alert.
                     if (!previousState[cid].initialRun
                         && previousState[cid].readyStates.status.ready.length != currentState.readyStates.status.ready.length
-                        && currentState.readyStates.status.ready.length > 0
+                        && currentState.readyStates.status.ready.length > numToDisplay
                         && currentState.phase != undefined) {
                         var formattedMessage = currentState.phase + " - *" + currentState.year + "*\n_"
                             + timeRemaining + " remaining._\n*Ready*      ";
@@ -215,7 +221,7 @@ telegram.on("text", function (message) {
                 else{
                     winston.info("Tried to check website, but was not allowed.");
                 }
-            }, 300000);
+            }, 360000);
         }
         else {
             if(util.timeAllowed()) {
@@ -240,7 +246,7 @@ telegram.on("text", function (message) {
                 if(timeAllowed()) {
                     checkWebsiteP(cid, split[1], split[2], split[3]);
                 }
-            }, 300000);
+            }, 360000);
         }
         else {
             checkWebsiteP(cid, split[1], split[2], split[3]);
