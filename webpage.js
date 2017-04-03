@@ -6,6 +6,7 @@ module.exports = {
         var jElement,
             status,
             country,
+            // The ready states are holding every group individually because we use no status as well as defeated status separately
             readyStates = {'status': {'ready':[],'notreceived':[],'completed':[],'none':[], 'defeated':[]}};
         // look through all countries status and check if the img is a green check.
         window.$.each(window.$('.memberCountryName'), function (idx, element) {
@@ -23,7 +24,7 @@ module.exports = {
             else if(status == "Not received")
                 readyStates.status.notreceived.push(country);
             else
-                readyStates.status.none.push(country.replace('- ', ''));
+                readyStates.status.none.push(country.replace('- ', '')); // no status countries have a dash instead of an icon
         });
         return readyStates;
     },

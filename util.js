@@ -10,11 +10,11 @@ module.exports = {
     },
     formatMessageTelegram:function (message) {
         return sanitizeHtml(message
-            .replace(/<br>/g, '\n')
-            .replace(/<strong>|<\/strong>/g, '*')
-            .replace(/\*/g, ''));
+            .replace(/<br>/g, '\n') // Replace breaks with newlines
+            .replace(/<strong>|<\/strong>/g, '*') // Replace strong with telegram bold markdown
+            .replace(/\*/g, '')); // Replace any asterisks with nothing to not make things accidentally bold.
     },
-    getEmoji: function (country) {
+    getEmoji: function (country) { // easier to lookup and return country flags so case doesn't mess us up
         switch (country.toLowerCase()) {
             case "russia":
                 return emoji.get('flag-ru');

@@ -1,5 +1,5 @@
-var setup = require('./setup.js'),
-    webpage = require('./webpage.js'),
+var setup = require('./setup.js'), // Setting up objects
+    webpage = require('./webpage.js'), // Webpage scraping 
     util = require('./util.js'),
     TelegramBot = require('node-telegram-bot-api'),
     telegram = new TelegramBot(util.token, {polling: true}),
@@ -8,7 +8,7 @@ var setup = require('./setup.js'),
     hash = require('object-hash'), // hashing messages for quick lookups
     winston = require('winston'),
     sanitizeHtml = require('sanitize-html'),
-    subscribed = {}, // use subscribed object to ensure multiple check intervals for same cid don't happen
+    subscribed = {}, // ensure multiple check intervals for same cid don't happen (reset every run)
     countries = ["England", "France", "Italy", "Germany", "Austria", "Turkey", "Russia"];
 
 var checkWebsite = function (cid, gid) {
@@ -56,23 +56,25 @@ var checkWebsite = function (cid, gid) {
                     currentState.year = webpage.getYear(window);
 
                     // **** ready states
-                    var timeRemaining = webpage.getTime(window);
+                    var timeRemaining = webpage.getTime(window); // Used to display alongside ready status
                     currentState.readyStates = webpage.getReadyStates(window);
-                    var numWithOrders = 7 - currentState.readyStates.status.none.length;
-                    var numToDisplay = numWithOrders - 3 > 0 ? numWithOrders - 3 : 0;
+                    // Here we don't want to update every time a country is ready unless there are only a few countries that have ready status
+                    var numWithOrders = 7 - currentState.readyStates.status.none.length; // get number of countries which need to put in orders
+                    var numToDisplay = numWithOrders - 3 > 0 ? numWithOrders - 3 : 0; // 7 countries will display when more than 4 are ready
                     winston.info("There are %s current countries with no status. " +
                         " The number with orders is %s so we are going to display  when >%s countries are ready.",
                         currentState.readyStates.status.none.length, numWithOrders, numToDisplay);
                     // ready count changed, send alert.
-                    if (!previousState[cid].initialRun
-                        && previousState[cid].readyStates.status.ready.length != currentState.readyStates.status.ready.length
-                        && currentState.readyStates.status.ready.length > numToDisplay
-                        && currentState.phase != undefined) {
-                        var formattedMessage = currentState.phase + " - *" + currentState.year + "*\n_"
-                            + timeRemaining + " remaining._\n*Ready*      ";
+                    if (!previousState[cid].initialRun // new run
+                        && previousState[cid].readyStates.status.ready.length != currentState.readyStates.status.ready.length // status changed
+                        && currentState.readyStates.status.ready.length > numToDisplay // we are above threashold to display
+                        && currentState.phase != undefined) { // there is a phase to display just so nothing fails when displaying
+                        var formattedMessage = "*"+currentState.year + "* - " + currentState.phase + "\n_"
+                            + timeRemaining + " remaining._\n*Ready*        "; //asterisk and underscores are for formatting
+                        // Add up all the non-(no status) countries
                         for (var i = 0; i < currentState.readyStates.status.ready.length; i++)
                             formattedMessage += util.getEmoji(currentState.readyStates.status.ready[i]);
-                        formattedMessage += "\n*Unready* ";
+                        formattedMessage += "\n*Not ready* ";
                         for (var i = 0; i < currentState.readyStates.status.completed.length; i++)
                             formattedMessage += util.getEmoji(currentState.readyStates.status.completed[i]);
                         for (var i = 0; i < currentState.readyStates.status.notreceived.length; i++)
@@ -84,10 +86,9 @@ var checkWebsite = function (cid, gid) {
 
                     if (previousState[cid].year != undefined
                         && previousState[cid].phase != undefined
-                        && (previousState[cid].phase != currentState.phase || previousState[cid].year != currentState.year)
+                        && (previousState[cid].phase != currentState.phase || previousState[cid].year != currentState.year) // This solves the problem of build/retreat phases not changing the current year
                         && !previousState[cid].initialRun) {
-                        // send update if year changes
-                        var formattedMessage = "The year is *" + currentState.year + "*, " + currentState.phase + "\n";
+                        var formattedMessage = "*" + currentState.year + "* - " + currentState.phase + "\n";
                         for (var i = 0; i < currentState.readyStates.status.ready.length; i++) {
                             formattedMessage += util.getEmoji(currentState.readyStates.status.ready[i]);
                         }
@@ -106,10 +107,8 @@ var checkWebsite = function (cid, gid) {
                     }
 
                     // we need to now save current state to compare to next update.
-                    previousState[cid].year = currentState.year;
-                    previousState[cid].readyStates = currentState.readyStates;
+                    previousState[cid].year = currentState;
                     previousState[cid].initialRun = false;
-                    previousState[cid].phase = currentState.phase;
                     fs.writeFileSync(cid + '.json', JSON.stringify(previousState[cid]), "utf8");
                 }
             );
@@ -201,13 +200,18 @@ var checkWebsiteP = function (cid, gid, wD_Code, wD_Key) {
 };
 
 telegram.on("text", function (message) {
-    var cid = message.chat.id;
+    var cid = message.chat.id; // use chat id because it is unique to individual chats
+    winston.info("Received command from %s: %s.",cid, message.text);
     if (message.text.toLowerCase().indexOf("/gsubscribe") === 0) { // given monitor message
         var split = message.text.split(' ');
         if(split[2]!=undefined)cid = split[2];
-        if (subscribed[cid] == undefined) subscribed[cid] = {'running': false, 'interval': -1};
+        if (subscribed[cid] == undefined) subscribed[cid] = {'running': false, 'interval': -1, 'gid':-1};
         if (subscribed[cid].running != true) {
             subscribed[cid].running = true;
+            subscribed[cid].gid = split[1];
+            if(split[2]!=undefined)telegram.sendMessage(cid, "This chat is now subscribed to receive updates for game " + subscribed[cid].gid);
+                winston.info("Chat %s subscribed for game %s.", cid, split[1]);
+
             if(util.timeAllowed()) {
                 checkWebsite(cid, split[1]);
             }
@@ -221,21 +225,24 @@ telegram.on("text", function (message) {
                 else{
                     winston.info("Tried to check website, but was not allowed.");
                 }
-            }, 360000);
+            }, 360000); // 6 minutes
         }
         else {
-            if(util.timeAllowed()) {
-                //checkWebsite(cid, "194050");
-            }
-            else{
-                winston.info("Tried to check website, but was not allowed.");
-            }
+            if(split[2]!=undefined)telegram.sendMessage(cid, "This chat is already subscribed to receive updates for game " + subscribed[cid].gid);
+            winston.info("Request for chat %s to subscribe for game %s denied.", cid, split[1]);
         }
     }
     else if (message.text.toLowerCase().indexOf("/stop") === 0) {
-        winston.info("Stopping subscription for %s", cid);
-        clearInterval(subscribed[cid].interval);
-        subscribed[cid].running = false;
+        if(subscribed[cid]!=undefined && subscribed[cid].running==true){
+            winston.info("Stopping subscription for %s", cid);
+            telegram.sendMessage(cid, "This chat will no longer receive updates for game " + subscribed[cid].gid);
+            clearInterval(subscribed[cid].interval);
+            subscribed[cid].running = false;
+        }
+        else{
+            winston.info("No subscription for %s", cid);
+            telegram.sendMessage(cid, "This chat is not monitoring any games.");
+        }
     }
     else if (message.text.toLowerCase().indexOf("/psubscribe") === 0) { // given monitor message
         if (subscribed[cid] == undefined) subscribed[cid] = {'running': false, 'interval': -1};
