@@ -59,11 +59,11 @@ var checkWebsite = function (cid, gid) {
                     var timeRemaining = webpage.getTime(window); // Used to display alongside ready status
                     currentState.readyStates = webpage.getReadyStates(window);
                     // Here we don't want to update every time a country is ready unless there are only a few countries that have ready status
-                    var numWithOrders = 7 - currentState.readyStates.status.none.length; // get number of countries which need to put in orders
-                    var numToDisplay = numWithOrders - 3 > 0 ? numWithOrders - 3 : 0; // 7 countries will display when more than 4 are ready
-                    winston.info("There are %s current countries with no status. " +
-                        " The number with orders is %s so we are going to display  when >%s countries are ready.",
-                        currentState.readyStates.status.none.length, numWithOrders, numToDisplay);
+                    var numWithOrders = 7 - currentState.readyStates.status.none.length - currentState.readyStates.status.defeated.length;
+                    var numToDisplay = numWithOrders - 3 > 0 ? numWithOrders - 3 : 0;
+                    winston.info("There are %s current countries with no status, %s defeated. " +
+                        " The number with orders is %s so we are going to display when >%s countries are ready.",
+                        currentState.readyStates.status.none.length, currentState.readyStates.status.defeated.length, numWithOrders, numToDisplay);
                     // ready count changed, send alert.
                     if (!previousState[cid].initialRun // new run
                         && previousState[cid].readyStates.status.ready.length != currentState.readyStates.status.ready.length // status changed
@@ -99,7 +99,7 @@ var checkWebsite = function (cid, gid) {
                             formattedMessage += util.getEmoji(currentState.readyStates.status.completed[i]);
                         }
                         for (var i = 0; i < currentState.readyStates.status.none.length; i++) {
-                            if (currentState.readyStates.status.none[i].toLowerCase() != "germany")
+                            if (!currentState.readyStates.status.defeated.includes(currentState.readyStates.status.none[i].toLowerCase()))
                                 formattedMessage += util.getEmoji(currentState.readyStates.status.none[i]);
                         }
                         winston.info('Sending ready message to %s for %s:\n%s', cid, gid, formattedMessage);
@@ -107,7 +107,10 @@ var checkWebsite = function (cid, gid) {
                     }
 
                     // we need to now save current state to compare to next update.
-                    previousState[cid].year = currentState;
+                    // we aren't copying the whole object because the hashed messages wouldn't stay
+                    previousState[cid].year = currentState.year;
+                    previousState[cid].phase = currentState.phase;
+                    previousState[cid].readyStates = currentState.readyStates;
                     previousState[cid].initialRun = false;
                     fs.writeFileSync(cid + '.json', JSON.stringify(previousState[cid]), "utf8");
                 }
@@ -209,8 +212,8 @@ telegram.on("text", function (message) {
         if (subscribed[cid].running != true) {
             subscribed[cid].running = true;
             subscribed[cid].gid = split[1];
-            if(split[2]!=undefined)telegram.sendMessage(cid, "This chat is now subscribed to receive updates for game " + subscribed[cid].gid);
-                winston.info("Chat %s subscribed for game %s.", cid, split[1]);
+            //if(split[2]==undefined)telegram.sendMessage(cid, "This chat is now subscribed to receive updates for game " + subscribed[cid].gid);
+            winston.info("Chat %s subscribed for game %s.", cid, split[1]);
 
             if(util.timeAllowed()) {
                 checkWebsite(cid, split[1]);
@@ -228,7 +231,7 @@ telegram.on("text", function (message) {
             }, 360000); // 6 minutes
         }
         else {
-            if(split[2]!=undefined)telegram.sendMessage(cid, "This chat is already subscribed to receive updates for game " + subscribed[cid].gid);
+            //if(split[2]!=undefined)telegram.sendMessage(cid, "This chat is already subscribed to receive updates for game " + subscribed[cid].gid);
             winston.info("Request for chat %s to subscribe for game %s denied.", cid, split[1]);
         }
     }

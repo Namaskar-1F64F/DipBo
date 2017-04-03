@@ -13,7 +13,7 @@ module.exports = {
             var jElement = window.$(element); // need jQuery object
             var status = jElement.find('img').attr('alt'); // green check
             var country = jElement.text().trim(); // there are 2 spaces after img
-            var defeated = jElement.hasClass('memberStatusDefeated');
+            var defeated = jElement.find('span').hasClass('memberStatusDefeated');
             if(defeated){
                 readyStates.status.defeated.push(country);
             }
