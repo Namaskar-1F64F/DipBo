@@ -1,5 +1,5 @@
-var winston = require('winston'),
-    util = require('./util.js');
+var util = require('./util.js'),
+    logger = util.logger;
 module.exports = {
     getReadyStates: function (window) {
         // **** ready states

@@ -1,5 +1,5 @@
-var winston = require('winston'),
-    util = require('./util.js'),
+var util = require('./util.js'),
+    logger = util.logger,
     fs = require('fs'), // storing json to disk
     tg = require('./telegram'),
     telegram = tg.getBot();
@@ -12,34 +12,37 @@ module.exports = {
         this.autoStart();
     },
     diplomacy: require('./diplomacy.js'),
-    start: function (cid, gid, notify) {
-        if(this.addSubscription(cid, gid)) {
+    start: function (cid, gid, notify, scope) {
+        if(scope.addSubscription(cid, gid)) {
             if(notify)telegram.sendMessage(cid, "This chat is now subscribed to receive updates for game " + gid);
-            var scope = this;
-            winston.info("Chat %s subscribed for game %s.", cid, gid);
+            logger.info("Chat %s subscribed for game %s.", cid, gid);
             if(util.timeAllowed()) {
                 scope.diplomacy.checkWebsite(cid, gid);
-                this.intervals[cid] = setInterval(function () {
+                scope.intervals[cid] = setInterval(function () {
                     if (util.timeAllowed()) {
                         scope.diplomacy.checkWebsite(cid, gid);
                     }
                     else {
-                        winston.info("Tried to check website, but was not allowed.");
+                        logger.warn("Tried to check website, but was not allowed.");
                     }
                 }, 360000); // 6 minutes
             }
-            else winston.info("Tried to check website, but was not allowed.");
+            else logger.warn("Tried to check website, but was not allowed.");
 
         }
         else{
-            winston.info("User %s already subscribed for chat %s", cid, this.intervals[cid]);
+            logger.warn("User %s already subscribed for chat %s", cid, this.intervals[cid]);
         }
     },
     autoStart: function () {
         for(var i = 0; i < this.subscriptions.subscribed.length; i++) {
             var cid = this.subscriptions.subscribed[i].cid;
             var gid = this.subscriptions.subscribed[i].gid;
-            this.start(cid, gid, false);
+            var sleep = (360000/this.subscriptions.subscribed.length)*i;
+            var notify = false;
+            logger.info("Auto starting game %s for chat %s at time t+%s", cid, gid, sleep);
+            var scope = this;
+            setTimeout(this.start, sleep, cid, gid, notify, scope);
         }
     },
     stop: function (cid) {
@@ -61,7 +64,7 @@ module.exports = {
             }
         }
         catch (err) {
-            winston.info(err);
+            logger.error(err);
             return false;
         }
     },
@@ -77,7 +80,7 @@ module.exports = {
             }
         }
         catch (err) {
-            winston.info(err);
+            logger.error(err);
             return false;
         }
     },
@@ -98,7 +101,7 @@ module.exports = {
         catch(err){
             //Theres an error, lets create file now
             fs.writeFileSync('subscription.json', JSON.stringify({'subscribed':[]}), "utf8");
-            winston.info(err);
+            logger.error(err);
             return {'subscribed':[]};
         }
     }

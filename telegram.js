@@ -1,4 +1,5 @@
-var winston = require('winston'),
+var util = require('./util.js'),
+    logger = util.logger,
     diplomacy = require('./diplomacy'),
     telegramBot= require('node-telegram-bot-api');
 

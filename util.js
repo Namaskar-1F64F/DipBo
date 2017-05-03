@@ -3,6 +3,15 @@ var winston = require('winston'),
     emoji = require('node-emoji'); // country flags
 
 module.exports = {
+    timeFormat: (new Date()).toLocaleTimeString(),
+    logger: new (winston.Logger)({
+        transports: [
+            new (winston.transports.Console)({
+                timestamp: true,
+                colorize: true
+            })
+        ]
+    }),
     timeAllowed: function () {
         var date = new Date();
         return (date.getHours() < 24 && date.getHours() > 7);

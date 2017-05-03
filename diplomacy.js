@@ -1,5 +1,5 @@
-var winston = require('winston'),
-    util = require('./util.js'),
+var util = require('./util.js'),
+    logger = util.logger,
     setup = require('./setup.js'),
     jsdom = require('jsdom'), // used to create dom to navigate through jQuery
     hash = require('object-hash'), // hashing messages for quick lookups
@@ -12,14 +12,14 @@ module.exports = {
     countries: ["England", "France", "Italy", "Germany", "Austria", "Turkey", "Russia"],
     checkWebsite: function (cid, gid) {
         try {
-            winston.info("Checking game: %s for user: %s.", gid, cid);
+            logger.info("Checking game: %s for user: %s.", gid, cid);
             var previousState = setup.getPreviousState(cid);
             var currentState = setup.getCurrentState();
             jsdom.env(
                 "http://webdiplomacy.net/board.php?gameID=" + gid,
                 ["http://code.jquery.com/jquery.js"],
                 function (err, window) {
-                    winston.info('Checking for updates.');
+                    logger.info('Checking for updates.');
                     // ***** Get all messages in global chatbox ****
                     var newMessages = window.$("#chatboxscroll>table>tbody>tr");
                     // For each message,
@@ -40,7 +40,7 @@ module.exports = {
                                     if (!previousState[cid].initialRun && message.text.indexOf('Autumn, ') == -1 && message.text.indexOf('Spring, ') == -1) {
                                         var formattedMessage = util.getEmoji(countries[message.country - 1])
                                             + " " + message.text;
-                                        winston.info('Sending global message to %s for %s:\n%s', cid, gid, formattedMessage);
+                                        logger.silly('Sending global message to %s for %s:\n%s', cid, gid, formattedMessage);
                                         telegram.sendMessage(cid, formattedMessage, {parse_mode: "HTML"});
                                     }
                                 }
@@ -57,9 +57,8 @@ module.exports = {
                     // Here we don't want to update every time a country is ready unless there are only a few countries that have ready status
                     var numWithOrders = 7 - currentState.readyStates.status.none.length - currentState.readyStates.status.defeated.length;
                     var numToDisplay = numWithOrders - 3 > 0 ? numWithOrders - 3 : 0;
-                    winston.info("There are %s current countries with no status, %s defeated. " +
-                        " The number with orders is %s so we are going to display when >%s countries are ready.",
-                        currentState.readyStates.status.none.length, currentState.readyStates.status.defeated.length, numWithOrders, numToDisplay);
+                    logger.info("There are %s countries with orders and %s of those ready. Displaying at >%s",
+                        currentState.readyStates.status.ready.length, numWithOrders, numToDisplay);
                     // ready count changed, send alert.
                     if (!previousState[cid].initialRun // new run
                         && previousState[cid].readyStates.status.ready.length != currentState.readyStates.status.ready.length // status changed
@@ -75,7 +74,7 @@ module.exports = {
                             formattedMessage += util.getEmoji(currentState.readyStates.status.completed[i]);
                         for (var i = 0; i < currentState.readyStates.status.notreceived.length; i++)
                             formattedMessage += util.getEmoji(currentState.readyStates.status.notreceived[i]);
-                        winston.info('Sending ready message to %s for %s:\n%s', cid, gid, formattedMessage);
+                        logger.silly('Sending ready message to %s for %s:\n%s', cid, gid, formattedMessage);
                         telegram.sendMessage(cid, formattedMessage, {parse_mode: "Markdown"});
                     }
 
@@ -99,7 +98,7 @@ module.exports = {
                          if (!currentState.readyStates.status.defeated.includes(currentState.readyStates.status.none[i].toLowerCase()))
                          formattedMessage += util.getEmoji(currentState.readyStates.status.none[i]);
                          }*/
-                        winston.info('Sending ready message to %s for %s:\n%s', cid, gid, formattedMessage);
+                        logger.silly('Sending ready message to %s for %s:\n%s', cid, gid, formattedMessage);
                         telegram.sendMessage(cid, formattedMessage, {parse_mode: "Markdown"});
                     }
 
@@ -113,7 +112,7 @@ module.exports = {
                 }
             );
         } catch (err) {
-            winston.info(err);
+            logger.error(err);
         }
     }
 };

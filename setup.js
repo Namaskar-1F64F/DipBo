@@ -1,15 +1,16 @@
-var winston = require('winston');
+var util = require('./util.js'),
+    logger = util.logger;
 module.exports = {
     getPreviousState: function(cid){
         var previousState = {};
-        winston.info("Getting previous state for user: %s", cid);
+        logger.info("Getting previous state for user: %s", cid);
         var file = './' +  cid + '.json';
         try {  // get previous state from file
             previousState[cid] = require(file);
-            winston.log("Successfully loaded %s.", file);
+            logger.log("Successfully loaded %s.", file);
         }
         catch (err) { // if there is an error, start with a blank template
-            winston.info("File %s not found. Starting from scratch.", file);
+            logger.warn("File %s not found. Starting from scratch.", file);
             // Plaintext messages
             previousState[cid] = {};
             // Hashed message objects

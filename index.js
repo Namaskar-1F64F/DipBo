@@ -1,3 +1,4 @@
+console.log('Started WebDiplomacy Telegram Bot.')
 var setup = require('./setup.js'), // Setting up objects
     webpage = require('./webpage.js'), // Webpage scraping 
     util = require('./util.js'),
@@ -8,13 +9,15 @@ var setup = require('./setup.js'), // Setting up objects
     jsdom = require('jsdom'), // used to create dom to navigate through jQuery
     fs = require('fs'), // storing json to disk
     hash = require('object-hash'), // hashing messages for quick lookups
-    winston = require('winston'),
+    logger = util.logger;
     sanitizeHtml = require('sanitize-html');
-subscription.init();
+    subscription.init();
+
+logger.info('Loaded Dependencies');
 
 telegram.on("text", function (message) {
     var cid = message.chat.id; // use chat id because it is unique to individual chats
-    winston.info("Received command from %s: %s.", cid, message.text);
+    logger.verbose("Received command from %s: %s.", cid, message.text);
     if (message.text.toLowerCase().indexOf("/monitor") === 0) { // given monitor message
         var split = message.text.split(' ');
         if (split[2] != undefined) cid = split[2];
