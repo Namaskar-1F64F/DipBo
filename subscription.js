@@ -12,7 +12,7 @@ module.exports = {
         this.autoStart();
     },
     diplomacy: require('./diplomacy.js'),
-    start: function (cid, gid, notify, scope) {
+    start: function (cid, gid, notify, scope=this) {
         if(scope.addSubscription(cid, gid)) {
             if(notify)telegram.sendMessage(cid, "This chat is now subscribed to receive updates for game " + gid);
             logger.info("Chat %s subscribed for game %s.", cid, gid);

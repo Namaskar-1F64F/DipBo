@@ -20,10 +20,18 @@ telegram.on("text", function (message) {
     logger.verbose("Received command from %s: %s.", cid, message.text);
     if (message.text.toLowerCase().indexOf("/monitor") === 0) { // given monitor message
         var split = message.text.split(' ');
+        if (split.length == 1)telegram.sendMessage(cid, "Specify a game ID\n/monitor gameID");
         if (split[2] != undefined) cid = split[2];
         subscription.start(cid, split[1], split[2]==undefined);
     }
-    if (message.text.toLowerCase().indexOf("/stop") === 0) { // given monitor message
+    else if (message.text.toLowerCase().indexOf("/stop") === 0) { // given monitor message
         subscription.stop(cid);
+    }
+    else if (message.text.toLowerCase().indexOf("/start") === 0||message.text.toLowerCase().indexOf("/help") === 0) {
+        telegram.sendMessage(cid, "*Welcome to webDiplomacy bot!*\n"
+        + "To get started, locate the  `gameID` (found in the URL of a webDiplomacy game) you want to monitor"
+        + " and send the \n\n `/monitor \<GAME_ID\>` command to get started.\n\n"
+        + "To stop monitoring, send the command `/stop`.\n\n"
+        + "[Visit the GitHub](https://github.com/Timone/WebDiplomacyTelegramBot)", {parse_mode: "Markdown"});
     }
 });

@@ -64,7 +64,7 @@ module.exports = {
                         && previousState[cid].phase != undefined
                         && (previousState[cid].phase != currentState.phase || previousState[cid].year != currentState.year) // This solves the problem of build/retreat phases not changing the current year
                         && !previousState[cid].initialRun) {
-                        var formattedMessage = "*" + currentState.year + "* - " + currentState.phase + "\n";
+                        var formattedMessage = currentState.year + " - " + currentState.phase + "\n";
                         for (var i = 0; i < currentState.readyStates.status.ready.length; i++) {
                             formattedMessage += util.getEmoji(currentState.readyStates.status.ready[i]);
                         }
@@ -74,15 +74,17 @@ module.exports = {
                         for (var i = 0; i < currentState.readyStates.status.completed.length; i++) {
                             formattedMessage += util.getEmoji(currentState.readyStates.status.completed[i]);
                         }
-                        logger.silly('Sending ready message to %s for %s:\n%s', cid, gid, formattedMessage);
-                        telegram.sendMessage(cid, formattedMessage, {parse_mode: "Markdown"});
+                        winston.silly('Sending phase change to %s for %s:\n%s', cid, gid, formattedMessage);
+                        webpage.download('http://webdiplomacy.net/map.php?gameID=' + gid + '&turn=500', './' + gid + '.png', function(err){
+                            if(err==undefined)telegram.sendPhoto(cid, './' + gid + '.png', {caption:formattedMessage});
+                        });
                     }
                     // ready count changed, send alert.
                     if (!previousState[cid].initialRun // new run
                         && previousState[cid].readyStates.status.ready.length != currentState.readyStates.status.ready.length // status changed
                         && currentState.readyStates.status.ready.length > numToDisplay // we are above threashold to display
                         && currentState.phase != undefined) { // there is a phase to display just so nothing fails when displaying
-                        var formattedMessage = "*" + currentState.year + "* - " + currentState.phase + "\n"
+                        var formattedMessage = "*" + currentState.year + "* - [" + currentState.phase + "](http://webdiplomacy.net/board.php?gameID=" + gid + ")\n"
                             + "*Ready*        "; //asterisk and underscores are for formatting
                         // Add up all the non-(no status) countries
                         for (var i = 0; i < currentState.readyStates.status.ready.length; i++)
@@ -94,7 +96,7 @@ module.exports = {
                             formattedMessage += util.getEmoji(currentState.readyStates.status.notreceived[i]);
                         formattedMessage +="\n_" + timeRemaining + " remaining._";
                         logger.silly('Sending ready message to %s for %s:\n%s', cid, gid, formattedMessage);
-                        telegram.sendMessage(cid, formattedMessage, {parse_mode: "Markdown"});
+                        telegram.sendMessage(cid, formattedMessage, {parse_mode: "Markdown", disable_web_page_preview:true});
                     }
 
                     // we need to now save current state to compare to next update.
