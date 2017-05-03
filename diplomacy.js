@@ -57,28 +57,9 @@ module.exports = {
                     // Here we don't want to update every time a country is ready unless there are only a few countries that have ready status
                     var numWithOrders = 7 - currentState.readyStates.status.none.length - currentState.readyStates.status.defeated.length;
                     var numToDisplay = numWithOrders - 3 > 0 ? numWithOrders - 3 : 0;
-                    logger.info("There are %s countries with orders and %s of those ready. Displaying at >%s",
-                        currentState.readyStates.status.ready.length, numWithOrders, numToDisplay);
-                    // ready count changed, send alert.
-                    if (!previousState[cid].initialRun // new run
-                        && previousState[cid].readyStates.status.ready.length != currentState.readyStates.status.ready.length // status changed
-                        && currentState.readyStates.status.ready.length > numToDisplay // we are above threashold to display
-                        && currentState.phase != undefined) { // there is a phase to display just so nothing fails when displaying
-                        var formattedMessage = "*" + currentState.year + "* - " + currentState.phase + "\n_"
-                            + timeRemaining + " remaining._\n*Ready*        "; //asterisk and underscores are for formatting
-                        // Add up all the non-(no status) countries
-                        for (var i = 0; i < currentState.readyStates.status.ready.length; i++)
-                            formattedMessage += util.getEmoji(currentState.readyStates.status.ready[i]);
-                        formattedMessage += "\n*Not ready* ";
-                        for (var i = 0; i < currentState.readyStates.status.completed.length; i++)
-                            formattedMessage += util.getEmoji(currentState.readyStates.status.completed[i]);
-                        for (var i = 0; i < currentState.readyStates.status.notreceived.length; i++)
-                            formattedMessage += util.getEmoji(currentState.readyStates.status.notreceived[i]);
-                        logger.silly('Sending ready message to %s for %s:\n%s', cid, gid, formattedMessage);
-                        telegram.sendMessage(cid, formattedMessage, {parse_mode: "Markdown"});
-                    }
-
-
+                    /*logger.info("There are %s countries with orders and %s ready. Displaying at >%s",
+                        numWithOrders, currentState.readyStates.status.ready.length, numToDisplay);*/
+                    // phase changed, send alert
                     if (previousState[cid].year != undefined
                         && previousState[cid].phase != undefined
                         && (previousState[cid].phase != currentState.phase || previousState[cid].year != currentState.year) // This solves the problem of build/retreat phases not changing the current year
@@ -93,11 +74,25 @@ module.exports = {
                         for (var i = 0; i < currentState.readyStates.status.completed.length; i++) {
                             formattedMessage += util.getEmoji(currentState.readyStates.status.completed[i]);
                         }
-                        /* don't show people without orders
-                         for (var i = 0; i < currentState.readyStates.status.none.length; i++) {
-                         if (!currentState.readyStates.status.defeated.includes(currentState.readyStates.status.none[i].toLowerCase()))
-                         formattedMessage += util.getEmoji(currentState.readyStates.status.none[i]);
-                         }*/
+                        logger.silly('Sending ready message to %s for %s:\n%s', cid, gid, formattedMessage);
+                        telegram.sendMessage(cid, formattedMessage, {parse_mode: "Markdown"});
+                    }
+                    // ready count changed, send alert.
+                    if (!previousState[cid].initialRun // new run
+                        && previousState[cid].readyStates.status.ready.length != currentState.readyStates.status.ready.length // status changed
+                        && currentState.readyStates.status.ready.length > numToDisplay // we are above threashold to display
+                        && currentState.phase != undefined) { // there is a phase to display just so nothing fails when displaying
+                        var formattedMessage = "*" + currentState.year + "* - " + currentState.phase + "\n"
+                            + "*Ready*        "; //asterisk and underscores are for formatting
+                        // Add up all the non-(no status) countries
+                        for (var i = 0; i < currentState.readyStates.status.ready.length; i++)
+                            formattedMessage += util.getEmoji(currentState.readyStates.status.ready[i]);
+                        formattedMessage += "\n*Not ready* ";
+                        for (var i = 0; i < currentState.readyStates.status.completed.length; i++)
+                            formattedMessage += util.getEmoji(currentState.readyStates.status.completed[i]);
+                        for (var i = 0; i < currentState.readyStates.status.notreceived.length; i++)
+                            formattedMessage += util.getEmoji(currentState.readyStates.status.notreceived[i]);
+                        formattedMessage +="\n_" + timeRemaining + " remaining._";
                         logger.silly('Sending ready message to %s for %s:\n%s', cid, gid, formattedMessage);
                         telegram.sendMessage(cid, formattedMessage, {parse_mode: "Markdown"});
                     }
