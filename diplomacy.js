@@ -40,7 +40,7 @@ module.exports = {
                                     if (!previousState[cid].initialRun && message.text.indexOf('Autumn, ') == -1 && message.text.indexOf('Spring, ') == -1) {
                                         var formattedMessage = util.getEmoji(countries[message.country - 1])
                                             + " " + message.text;
-                                        logger.silly('Sending global message to %s for %s:\n%s', cid, gid, formattedMessage);
+                                        logger.verbose('Sending global message to %s for %s:\n%s', cid, gid, formattedMessage);
                                         telegram.sendMessage(cid, formattedMessage, {parse_mode: "HTML"});
                                     }
                                 }
@@ -74,8 +74,8 @@ module.exports = {
                         for (var i = 0; i < currentState.readyStates.status.completed.length; i++) {
                             formattedMessage += util.getEmoji(currentState.readyStates.status.completed[i]);
                         }
-                        winston.silly('Sending phase change to %s for %s:\n%s', cid, gid, formattedMessage);
-                        webpage.download('http://webdiplomacy.net/map.php?gameID=' + gid + '&turn=500', './' + gid + '.png', function(err){
+                        logger.verbose('Sending phase change to %s for %s:\n%s', cid, gid, formattedMessage);
+                        webpage.download('http://webdiplomacy.net/map.php?mapType=large&gameID=' + gid + '&turn=500', './' + gid + '.png', function(err){
                             if(err==undefined)telegram.sendPhoto(cid, './' + gid + '.png', {caption:formattedMessage});
                         });
                     }
@@ -95,7 +95,7 @@ module.exports = {
                         for (var i = 0; i < currentState.readyStates.status.notreceived.length; i++)
                             formattedMessage += util.getEmoji(currentState.readyStates.status.notreceived[i]);
                         formattedMessage +="\n_" + timeRemaining + " remaining._";
-                        logger.silly('Sending ready message to %s for %s:\n%s', cid, gid, formattedMessage);
+                        logger.verbose('Sending ready message to %s for %s:\n%s', cid, gid, formattedMessage);
                         telegram.sendMessage(cid, formattedMessage, {parse_mode: "Markdown", disable_web_page_preview:true});
                     }
 

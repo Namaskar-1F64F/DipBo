@@ -14,7 +14,7 @@ var setup = require('./setup.js'), // Setting up objects
     subscription.init();
 
 logger.info('Loaded Dependencies');
-
+logger.transports.console.level = 'debug';
 telegram.on("text", function (message) {
     var cid = message.chat.id; // use chat id because it is unique to individual chats
     logger.verbose("Received command from %s: %s.", cid, message.text);
