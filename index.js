@@ -30,7 +30,7 @@ telegram.on("text", function (message) {
     else if (message.text.toLowerCase().indexOf("/start") === 0||message.text.toLowerCase().indexOf("/help") === 0) {
         telegram.sendMessage(cid, "*Welcome to webDiplomacy bot!*\n"
         + "To get started, locate the  `gameID` (found in the URL of a webDiplomacy game) you want to monitor"
-        + " and send the \n\n `/monitor \<GAME_ID\>` command to get started.\n\n"
+        + " and send the \n\n `/monitor \<GAME_ID\>` command to monitor a game.\n\n"
         + "To stop monitoring, send the command `/stop`.\n\n"
         + "[Visit the GitHub](https://github.com/Timone/WebDiplomacyTelegramBot)", {parse_mode: "Markdown"});
     }

@@ -9,9 +9,9 @@ var util = require('./util.js'),
     fs = require('fs'); // storing json to disk
 
 module.exports = {
-    countries: ["England", "France", "Italy", "Germany", "Austria", "Turkey", "Russia"],
     checkWebsite: function (cid, gid) {
         try {
+            var countries = ["England", "France", "Italy", "Germany", "Austria", "Turkey", "Russia"];
             logger.info("Checking game: %s for user: %s.", gid, cid);
             var previousState = setup.getPreviousState(cid);
             var currentState = setup.getCurrentState();
