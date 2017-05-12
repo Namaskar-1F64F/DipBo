@@ -18,17 +18,16 @@ module.exports = {
             logger.info("Chat %s subscribed for game %s.", cid, gid);
             if(util.timeAllowed()) {
                 scope.diplomacy.checkWebsite(cid, gid);
-                scope.intervals[cid] = setInterval(function () {
-                    if (util.timeAllowed()) {
-                        scope.diplomacy.checkWebsite(cid, gid);
-                    }
-                    else {
-                        logger.warn("Tried to check website, but was not allowed.");
-                    }
-                }, 360000); // 6 minutes
             }
             else logger.warn("Tried to check website, but was not allowed.");
-
+            scope.intervals[cid] = setInterval(function () {
+                if (util.timeAllowed()) {
+                    scope.diplomacy.checkWebsite(cid, gid);
+                }
+                else {
+                    logger.warn("Tried to check website, but was not allowed.");
+                }
+            }, 360000); // 6 minutes
         }
         else{
             logger.warn("User %s already subscribed for chat %s", cid, this.intervals[cid]);
