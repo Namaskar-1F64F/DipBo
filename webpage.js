@@ -39,7 +39,7 @@ module.exports = {
     getTime: function(window){
         return window.$('.timeremaining').text();
     },
-    download: function(url, dest, cb) {
+    download: function(url, dest, cb) { // From http://stackoverflow.com/a/32134846
         var file = fs.createWriteStream(dest);
         var sendReq = request.get(url);
 

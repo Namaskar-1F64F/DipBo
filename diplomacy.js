@@ -38,10 +38,10 @@ module.exports = {
                                 if (previousState[cid].hashedMessages[hash(message)] != true) {
                                     previousState[cid].hashedMessages[hash(message)] = true;
                                     if (!previousState[cid].initialRun && message.text.indexOf('Autumn, ') == -1 && message.text.indexOf('Spring, ') == -1) {
-                                        var formattedMessage = util.getEmoji(countries[message.country - 1])
+                                        var globalMessage = util.getEmoji(countries[message.country - 1])
                                             + " " + message.text;
-                                        logger.verbose('Sending global message to %s for %s:\n%s', cid, gid, formattedMessage);
-                                        telegram.sendMessage(cid, formattedMessage, {parse_mode: "HTML"});
+                                        logger.verbose('Sending global message to %s for %s:\n%s', cid, gid, globalMessage);
+                                        telegram.sendMessage(cid, globalMessage, {parse_mode: "HTML"});
                                     }
                                 }
                             }
@@ -64,19 +64,19 @@ module.exports = {
                         && previousState[cid].phase != undefined
                         && (previousState[cid].phase != currentState.phase || previousState[cid].year != currentState.year) // This solves the problem of build/retreat phases not changing the current year
                         && !previousState[cid].initialRun) {
-                        var formattedMessage = currentState.year + " - " + currentState.phase + "\n";
+                        var phaseMessage = currentState.year + " - " + currentState.phase + "\n";
                         for (var i = 0; i < currentState.readyStates.status.ready.length; i++) {
-                            formattedMessage += util.getEmoji(currentState.readyStates.status.ready[i]);
+                            phaseMessage += util.getEmoji(currentState.readyStates.status.ready[i]);
                         }
                         for (var i = 0; i < currentState.readyStates.status.notreceived.length; i++) {
-                            formattedMessage += util.getEmoji(currentState.readyStates.status.notreceived[i]);
+                            phaseMessage += util.getEmoji(currentState.readyStates.status.notreceived[i]);
                         }
                         for (var i = 0; i < currentState.readyStates.status.completed.length; i++) {
-                            formattedMessage += util.getEmoji(currentState.readyStates.status.completed[i]);
+                            phaseMessage += util.getEmoji(currentState.readyStates.status.completed[i]);
                         }
-                        logger.verbose('Sending phase change to %s for %s:\n%s', cid, gid, formattedMessage);
+                        logger.verbose('Sending phase change to %s for %s:\n%s', cid, gid, phaseMessage);
                         webpage.download('http://webdiplomacy.net/map.php?mapType=large&gameID=' + gid + '&turn=500', './' + gid + '.png', function(err){
-                            if(err==undefined)telegram.sendPhoto(cid, './' + gid + '.png', {caption:formattedMessage});
+                            if(err==undefined)telegram.sendPhoto(cid, './' + gid + '.png', {caption:phaseMessage});
                         });
                     }
                     // ready count changed, send alert.
@@ -84,19 +84,19 @@ module.exports = {
                         && previousState[cid].readyStates.status.ready.length != currentState.readyStates.status.ready.length // status changed
                         && currentState.readyStates.status.ready.length > numToDisplay // we are above threashold to display
                         && currentState.phase != undefined) { // there is a phase to display just so nothing fails when displaying
-                        var formattedMessage = "*" + currentState.year + "* - [" + currentState.phase + "](http://webdiplomacy.net/board.php?gameID=" + gid + ")\n"
+                        var readyMessage = "*" + currentState.year + "* - [" + currentState.phase + "](http://webdiplomacy.net/board.php?gameID=" + gid + ")\n"
                             + "*Ready*        "; //asterisk and underscores are for formatting
                         // Add up all the non-(no status) countries
                         for (var i = 0; i < currentState.readyStates.status.ready.length; i++)
-                            formattedMessage += util.getEmoji(currentState.readyStates.status.ready[i]);
-                        formattedMessage += "\n*Not ready* ";
+                            readyMessage += util.getEmoji(currentState.readyStates.status.ready[i]);
+                        readyMessage += "\n*Not ready* ";
                         for (var i = 0; i < currentState.readyStates.status.completed.length; i++)
-                            formattedMessage += util.getEmoji(currentState.readyStates.status.completed[i]);
+                            readyMessage += util.getEmoji(currentState.readyStates.status.completed[i]);
                         for (var i = 0; i < currentState.readyStates.status.notreceived.length; i++)
-                            formattedMessage += util.getEmoji(currentState.readyStates.status.notreceived[i]);
-                        formattedMessage +="\n_" + timeRemaining + " remaining._";
-                        logger.verbose('Sending ready message to %s for %s:\n%s', cid, gid, formattedMessage);
-                        telegram.sendMessage(cid, formattedMessage, {parse_mode: "Markdown", disable_web_page_preview:true});
+                            readyMessage += util.getEmoji(currentState.readyStates.status.notreceived[i]);
+                        readyMessage +="\n_" + timeRemaining + " remaining._";
+                        logger.verbose('Sending ready message to %s for %s:\n%s', cid, gid, readyMessage);
+                        telegram.sendMessage(cid, readyMessage, {parse_mode: "Markdown", disable_web_page_preview:true});
                     }
 
                     // we need to now save current state to compare to next update.

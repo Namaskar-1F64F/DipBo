@@ -14,6 +14,8 @@ var setup = require('./setup.js'), // Setting up objects
     subscription.init();
 
 logger.info('Loaded Dependencies');
+// Log debug and above messages to console.  wanted to differentiate info and message
+// logger.verbose for telegram emits, logger.info for everything not scary, warn for kinda, err for errors
 logger.transports.console.level = 'debug';
 telegram.on("text", function (message) {
     var cid = message.chat.id; // use chat id because it is unique to individual chats
@@ -22,6 +24,7 @@ telegram.on("text", function (message) {
         var split = message.text.split(' ');
         if (split.length == 1)telegram.sendMessage(cid, "Specify a game ID\n/monitor gameID");
         if (split[2] != undefined) cid = split[2];
+        // start subscription for specific chat
         subscription.start(cid, split[1], split[2]==undefined);
     }
     else if (message.text.toLowerCase().indexOf("/stop") === 0) { // given monitor message

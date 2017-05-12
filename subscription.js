@@ -5,21 +5,23 @@ var util = require('./util.js'),
     telegram = tg.getBot();
 
 module.exports = {
-    subscriptions: undefined,
-    intervals: {},
+    subscriptions: undefined,  // Start with empty subscriptions object
+    intervals: {}, // Store intervals which can be later stopped by the /stop command
     init: function(){
         this.subscriptions = this.readFromFile();
         this.autoStart();
     },
-    diplomacy: require('./diplomacy.js'),
+    diplomacy: require('./diplomacy.js'),  // We need this object locally because of the scope problem.  not sure how to fix
     start: function (cid, gid, notify, scope=this) {
-        if(scope.addSubscription(cid, gid)) {
+        if(scope.addSubscription(cid, gid)) { // Successfully added?
             if(notify)telegram.sendMessage(cid, "This chat is now subscribed to receive updates for game " + gid);
             logger.info("Chat %s subscribed for game %s.", cid, gid);
+            // Check website for immediate checking
             if(util.timeAllowed()) {
                 scope.diplomacy.checkWebsite(cid, gid);
             }
             else logger.warn("Tried to check website, but was not allowed.");
+            // Then, set an interval to check the website
             scope.intervals[cid] = setInterval(function () {
                 if (util.timeAllowed()) {
                     scope.diplomacy.checkWebsite(cid, gid);
@@ -34,6 +36,7 @@ module.exports = {
         }
     },
     autoStart: function () {
+        // When the application stops running, intervals are cleared, we want to restart all active subscriptions
         for(var i = 0; i < this.subscriptions.subscribed.length; i++) {
             var cid = this.subscriptions.subscribed[i].cid;
             var gid = this.subscriptions.subscribed[i].gid;
@@ -77,6 +80,7 @@ module.exports = {
                     this.writeToFile();
                 }
             }
+            logger.info("Stopped subscription for chat %s.", cid);
         }
         catch (err) {
             logger.error(err);
