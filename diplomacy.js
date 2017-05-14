@@ -23,7 +23,7 @@ module.exports = {
                     // ***** Get all messages in global chatbox ****
                     var newMessages = window.$("#chatboxscroll>table>tbody>tr");
                     // For each message,
-                    if (window.$('.notice').length == 0) {
+                    if (window.$('.gamePanelHome').length == 0) {
                         for (var i = 0; i < newMessages.length; i++) {
                             var message = {
                                 // countries are found by looking at what class they are -> country1, country2 ...
