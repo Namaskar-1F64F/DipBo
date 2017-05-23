@@ -24,6 +24,36 @@ module.exports = {
     },
     getEmoji: function (country) { // easier to lookup and return country flags so case doesn't mess us up
         switch (country.toLowerCase()) {
+            case "new-york":
+                return emoji.get('apple');
+                break;
+            case "heartland":
+                return emoji.get('horse');
+                break;
+            case "california":
+                return emoji.get('surfer');
+                break;
+            case "texas":
+                return emoji.get('star');
+                break;
+            case "british-columbia":
+                return emoji.get('field_hockey_stick_and_ball');
+                break;
+            case "peru":
+                return emoji.get('mountain');
+                break;
+            case "florida":
+                return emoji.get('palm_tree');
+                break;
+            case "cuba":
+                return emoji.get('baseball');
+                break;
+            case "mexico":
+                return emoji.get('taco');
+                break;
+            case "quebec":
+                return emoji.get('ice_hockey_stick_and_puck');
+                break;
             case "russia":
                 return emoji.get('flag-ru');
                 break;

@@ -1,22 +1,23 @@
 console.log('Started WebDiplomacy Telegram Bot.')
-var setup = require('./setup.js'), // Setting up objects
-    webpage = require('./webpage.js'), // Webpage scraping 
-    util = require('./util.js'),
-    diplomacy = require('./diplomacy'),
+var setup        = require('./setup.js'), // Setting up objects
+    webpage      = require('./webpage.js'), // Webpage scraping
+    util         = require('./util.js'),
+    diplomacy    = require('./diplomacy'),
     subscription = require('./subscription.js'),
-    tg = require('./telegram'),
-    telegram = tg.getBot(),
-    jsdom = require('jsdom'), // used to create dom to navigate through jQuery
-    fs = require('fs'), // storing json to disk
-    hash = require('object-hash'), // hashing messages for quick lookups
-    logger = util.logger;
+    tg           = require('./telegram'),
+    telegram     = tg.getBot(),
+    jsdom        = require('jsdom'), // used to create dom to navigate through jQuery
+    fs           = require('fs'), // storing json to disk
+    hash         = require('object-hash'), // hashing messages for quick lookups
+    logger       = util.logger;
     sanitizeHtml = require('sanitize-html');
     subscription.init();
 
-logger.info('Loaded Dependencies');
 // Log debug and above messages to console.  wanted to differentiate info and message
 // logger.verbose for telegram emits, logger.info for everything not scary, warn for kinda, err for errors
 logger.transports.console.level = 'debug';
+logger.info('Loaded Dependencies');
+
 telegram.on("text", function (message) {
     var cid = message.chat.id; // use chat id because it is unique to individual chats
     logger.verbose("Received command from %s: %s.", cid, message.text);

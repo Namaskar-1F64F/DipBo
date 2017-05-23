@@ -1,6 +1,6 @@
-var util = require('./util.js'),
-    logger = util.logger,
-    fs = require('fs'),
+var util    = require('./util.js'),
+    logger  = util.logger,
+    fs      = require('fs'),
     request = require('request');
 module.exports = {
     getReadyStates: function (window) {
@@ -13,20 +13,20 @@ module.exports = {
         // look through all countries status and check if the img is a green check.
         window.$.each(window.$('.memberCountryName'), function (idx, element) {
             var jElement = window.$(element); // need jQuery object
-            var status = jElement.find('img').attr('alt'); // green check
-            var country = jElement.text().trim(); // there are 2 spaces after img
+            var status   = jElement.find('img').attr('alt'); // green check
+            var country  = jElement.text().trim(); // there are 2 spaces after img
             var defeated = jElement.find('span').hasClass('memberStatusDefeated');
             if(defeated){
                 readyStates.status.defeated.push(country);
             }
             else if(status == "Ready")
-                readyStates.status.ready.push(country);
-            else if(status=="Completed")
-                readyStates.status.completed.push(country);
+                readyStates.status.ready.      push(country);
+            else if(status == "Completed")
+                readyStates.status.completed.  push(country);
             else if(status == "Not received")
                 readyStates.status.notreceived.push(country);
             else
-                readyStates.status.none.push(country.replace('- ', '')); // no status countries have a dash instead of an icon
+                readyStates.status.none       .push(country.replace('- ', '')); // no status countries have a dash instead of an icon
         });
         return readyStates;
     },

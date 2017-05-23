@@ -1,7 +1,7 @@
-var util = require('./util.js'),
-    logger = util.logger,
-    fs = require('fs'), // storing json to disk
-    tg = require('./telegram'),
+var util     = require('./util.js'),
+    logger   = util.logger,
+    fs       = require('fs'), // storing json to disk
+    tg       = require('./telegram'),
     telegram = tg.getBot();
 
 module.exports = {

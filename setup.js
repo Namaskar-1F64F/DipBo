@@ -12,28 +12,28 @@ module.exports = {
         catch (err) { // if there is an error, start with a blank template
             logger.warn("File %s not found. Starting from scratch.", file);
             // Plaintext messages
-            previousState[cid] = {};
+            previousState[cid]                        = {};
             // Hashed message objects
-            previousState[cid].hashedMessages = {};
+            previousState[cid].hashedMessages         = {};
             // Game year
-            previousState[cid].year = "";
-            previousState[cid].phase = "";
+            previousState[cid].year                   = "";
+            previousState[cid].phase                  = "";
             // Object to store individual country status
-            previousState[cid].readyStates = {};
-            previousState[cid].readyStates.countries = {};
+            previousState[cid].readyStates            = {};
+            previousState[cid].readyStates.countries  = {};
             previousState[cid].readyStates.readyCount = 0;
-            previousState[cid].initialRun = true;
+            previousState[cid].initialRun             = true;
         }
         return previousState;
     },
     getCurrentState: function(){
-        var currentState = {};
-        currentState.messages = [];
-        currentState.hashedMessages = {};
-        currentState.year = "";
-        currentState.phase = "";
-        currentState.readyStates = {};
-        currentState.readyStates.countries = {};
+        var currentState                    = {};
+        currentState.messages               = [];
+        currentState.hashedMessages         = {};
+        currentState.year                   = "";
+        currentState.phase                  = "";
+        currentState.readyStates            = {};
+        currentState.readyStates.countries  = {};
         currentState.readyStates.readyCount = 0;
         return currentState;
     }

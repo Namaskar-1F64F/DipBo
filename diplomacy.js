@@ -1,20 +1,22 @@
-var util = require('./util.js'),
-    logger = util.logger,
-    setup = require('./setup.js'),
-    jsdom = require('jsdom'), // used to create dom to navigate through jQuery
-    hash = require('object-hash'), // hashing messages for quick lookups
-    webpage = require('./webpage.js'),// Webpage scraping
-    tg = require('./telegram.js'),
+var util     = require('./util.js'),
+    logger   = util.logger,
+    setup    = require('./setup.js'),
+    jsdom    = require('jsdom'), // used to create dom to navigate through jQuery
+    hash     = require('object-hash'), // hashing messages for quick lookups
+    webpage  = require('./webpage.js'),// Webpage scraping
+    tg       = require('./telegram.js'),
     telegram = tg.getBot(),
-    fs = require('fs'); // storing json to disk
+    fs       = require('fs'); // storing json to disk
 
 module.exports = {
     checkWebsite: function (cid, gid) {
         try {
             var countries = ["England", "France", "Italy", "Germany", "Austria", "Turkey", "Russia"];
+
             logger.info("Checking game: %s for user: %s.", gid, cid);
+
             var previousState = setup.getPreviousState(cid);
-            var currentState = setup.getCurrentState();
+            var currentState  = setup.getCurrentState();
             jsdom.env(
                 "http://webdiplomacy.net/board.php?gameID=" + gid,
                 ["http://code.jquery.com/jquery.js"],
@@ -49,7 +51,7 @@ module.exports = {
                     }
                     // **** get year and phase ****
                     currentState.phase = webpage.getPhase(window);
-                    currentState.year = webpage.getYear(window);
+                    currentState.year  = webpage. getYear(window);
 
                     // **** ready states
                     var timeRemaining = webpage.getTime(window); // Used to display alongside ready status
@@ -60,8 +62,8 @@ module.exports = {
                     /*logger.info("There are %s countries with orders and %s ready. Displaying at >%s",
                         numWithOrders, currentState.readyStates.status.ready.length, numToDisplay);*/
                     // phase changed, send alert
-                    if (previousState[cid].year != undefined
-                        && previousState[cid].phase != undefined
+                    if     (previousState[cid].year  != undefined
+                        &&  previousState[cid].phase != undefined
                         && (previousState[cid].phase != currentState.phase || previousState[cid].year != currentState.year) // This solves the problem of build/retreat phases not changing the current year
                         && !previousState[cid].initialRun) {
                         var phaseMessage = currentState.year + " - " + currentState.phase + "\n";
@@ -80,7 +82,7 @@ module.exports = {
                         });
                     }
                     // ready count changed, send alert.
-                    if (!previousState[cid].initialRun // new run
+                    if   (!previousState[cid].initialRun // new run
                         && previousState[cid].readyStates.status.ready.length != currentState.readyStates.status.ready.length // status changed
                         && currentState.readyStates.status.ready.length > numToDisplay // we are above threashold to display
                         && currentState.phase != undefined) { // there is a phase to display just so nothing fails when displaying
@@ -101,10 +103,11 @@ module.exports = {
 
                     // we need to now save current state to compare to next update.
                     // we aren't copying the whole object because the hashed messages wouldn't stay
-                    previousState[cid].year = currentState.year;
-                    previousState[cid].phase = currentState.phase;
+                    previousState[cid].year        = currentState.year;
+                    previousState[cid].phase       = currentState.phase;
                     previousState[cid].readyStates = currentState.readyStates;
-                    previousState[cid].initialRun = false;
+                    previousState[cid].initialRun  = false;
+
                     fs.writeFileSync(cid + '.json', JSON.stringify(previousState[cid]), "utf8");
                 }
             );
