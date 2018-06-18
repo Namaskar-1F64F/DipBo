@@ -18,10 +18,10 @@ module.exports = {
             var previousState = setup.getPreviousState(cid);
             var currentState  = setup.getCurrentState();
             var jquery = fs.readFileSync('jQuery.js').toString();
-            jsdom.env(
-                "http://webdiplomacy.net/board.php?gameID=" + gid,
-                [jquery],
-                function (err, window) {
+            jsdom.env({
+                html:"http://webdiplomacy.net/board.php?gameID=" + gid,
+                src:[jquery],
+                done:function (err, window) {
                     logger.info('Checking for updates.');
                     // ***** Get all messages in global chatbox ****
                     var newMessages = window.$("#chatboxscroll>table>tbody>tr");
@@ -111,7 +111,7 @@ module.exports = {
 
                     fs.writeFileSync(cid + '.json', JSON.stringify(previousState[cid]), "utf8");
                 }
-            );
+            });
         } catch (err) {
             logger.error(err);
         }
