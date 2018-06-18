@@ -19,7 +19,7 @@ module.exports = {
             var currentState  = setup.getCurrentState();
             jsdom.env(
                 "http://webdiplomacy.net/board.php?gameID=" + gid,
-                ["http://code.jquery.com/jquery.js"],
+                ["./jQuery.js"],
                 function (err, window) {
                     logger.info('Checking for updates.');
                     // ***** Get all messages in global chatbox ****
