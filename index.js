@@ -23,7 +23,10 @@ telegram.on("text", function (message) {
     logger.verbose("Received command from %s: %s.", cid, message.text);
     if (message.text.toLowerCase().indexOf("/monitor") === 0) { // given monitor message
         var split = message.text.split(' ');
-        if (split.length == 1)telegram.sendMessage(cid, "Specify a game ID\n/monitor gameID");
+        if (split.length == 1){
+            telegram.sendMessage(cid, "Specify a game ID\n/monitor gameID");
+            return; // don't start games for undefined id
+        }
         if (split[2] != undefined) cid = split[2];
         // start subscription for specific chat
         subscription.start(cid, split[1], split[2]==undefined);
