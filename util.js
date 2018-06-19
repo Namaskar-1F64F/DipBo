@@ -14,7 +14,7 @@ module.exports = {
     }),
     timeAllowed: function () {
         var date = new Date();
-        return (date.getHours() < 24 && date.getHours() > 7);
+        return true;
     },
     formatMessageTelegram:function (message) {
         return sanitizeHtml(message

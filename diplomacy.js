@@ -33,7 +33,8 @@ module.exports = {
                     // For each message,
                     if (window.$('.gamePanelHome').length == 0) {
                         for (var i = 0; i < newMessages.length; i++) {
-                            var message = {
+                            if(newMessages.eq(i).find('td').eq(1).length>0){
+                                var message = {
                                 // countries are found by looking at what class they are -> country1, country2 ...
                                 // so we are taking the substring up to the number
                                 "country": newMessages.eq(i).find('td').eq(1).attr('class').substring(13),
@@ -54,6 +55,7 @@ module.exports = {
                                 }
                             }
                         }
+}
                     }
                     // **** get year and phase ****
                     currentState.phase = webpage.getPhase(window);
@@ -106,7 +108,19 @@ module.exports = {
                         logger.verbose('Sending ready message to %s for %s:\n%s', cid, gid, readyMessage);
                         telegram.sendMessage(cid, readyMessage, {parse_mode: "Markdown", disable_web_page_preview:true});
                     }
-
+                    var span = window.document.querySelector('.timeremaining');
+                    if(span){
+                        var time = parseInt(span.attributes.getNamedItem('unixtime').value);
+                        if(time){
+                            var from = parseInt(span.attributes.getNamedItem('unixtimefrom').value);
+                            if(from){
+                                var left = (time - from);
+                                if(left<1980&&left>1620){
+                                    telegram.sendMessage(cid, "*" + currentState.year + "* - [" + currentState.phase + "](http://webdiplomacy.net/board.php?gameID=" + gid + ")\n" + "_A half hour remains._" , {parse_mode: "Markdown", disable_web_page_preview:true});
+                                }
+                            }
+                        }
+                    }
                     // we need to now save current state to compare to next update.
                     // we aren't copying the whole object because the hashed messages wouldn't stay
                     previousState[cid].year        = currentState.year;
