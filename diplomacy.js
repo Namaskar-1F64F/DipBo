@@ -22,6 +22,11 @@ module.exports = {
                 html:"http://webdiplomacy.net/board.php?gameID=" + gid,
                 src:[jquery],
                 done:function (err, window) {
+                    if(err != null) { 
+                        logger.info('Broke something yo');
+                        logger.info(err);
+                        return;
+                    }
                     logger.info('Checking for updates.');
                     // ***** Get all messages in global chatbox ****
                     var newMessages = window.$("#chatboxscroll>table>tbody>tr");
