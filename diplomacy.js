@@ -19,7 +19,7 @@ module.exports = {
             var currentState  = setup.getCurrentState();
             var jquery = fs.readFileSync('jQuery.js').toString();
             jsdom.env({
-                html:"http://webdiplomacy.net/board.php?gameID=" + gid,
+                url:"http://webdiplomacy.net/board.php?gameID=" + gid,
                 src:[jquery],
                 done:function (err, window) {
                     if(err != null) { 
