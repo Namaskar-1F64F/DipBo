@@ -32,7 +32,7 @@ module.exports = {
             }, 360000); // 6 minutes
         }
         else{
-            logger.warn("User %s already subscribed for chat %s", cid, this.intervals[cid]);
+            logger.warn("User %s already subscribed for chat %s", cid, this.intervals[cid] || 'not sure why this is broken send help');
         }
     },
     autoStart: function () {

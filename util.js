@@ -23,7 +23,7 @@ module.exports = {
             .replace(/\*/g, '')); // Replace any asterisks with nothing to not make things accidentally bold.
     },
     getEmoji: function (country) { // easier to lookup and return country flags so case doesn't mess us up
-        switch (country.toLowerCase()) {
+        switch (typeof country == 'string' && country.toLowerCase()) {
             case "new-york":
                 return emoji.get('apple');
                 break;
