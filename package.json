@@ -10,6 +10,7 @@
   },
   "dependencies": {
     "debug": "^2.6.3",
+    "express": "4.16.4",
     "forever": "^0.15.3",
     "jsdom": "^9.12.0",
     "node-emoji": "^1.5.1",
