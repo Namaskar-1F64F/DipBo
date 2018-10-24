@@ -1,4 +1,8 @@
-console.log('Started WebDiplomacy Telegram Bot.')
+const express = require('express'),
+app = express(),
+port = parseInt(process.env.PORT, 10) || 3000,
+host = '0.0.0.0';
+app.listen(port,host);
 var setup        = require('./setup.js'), // Setting up objects
     webpage      = require('./webpage.js'), // Webpage scraping
     util         = require('./util.js'),
