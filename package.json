@@ -3,6 +3,11 @@
   "version": "1.0.0",
   "description": "webdip telegram bot",
   "main": "index.js",
+  "scripts": {
+    "start:dev": "node index.js",
+    "start:prod": "node index.js",
+    "start": "node index.js",
+  }
   "dependencies": {
     "debug": "^2.6.3",
     "forever": "^0.15.3",
