@@ -1,7 +1,9 @@
 const express = require('express'),
 app = express(),
+bodyParser = require('body-parser'),
 port = parseInt(process.env.PORT, 10) || 3000,
 host = '0.0.0.0';
+app.use(bodyParser.json());
 var setup        = require('./setup.js'), // Setting up objects
     webpage      = require('./webpage.js'), // Webpage scraping
     util         = require('./util.js'),
@@ -14,7 +16,7 @@ var setup        = require('./setup.js'), // Setting up objects
     hash         = require('object-hash'), // hashing messages for quick lookups
     logger       = util.logger;
     sanitizeHtml = require('sanitize-html');
-    subscription.init();
+    subscription.init()
 
 // Log debug and above messages to console.  wanted to differentiate info and message
 // logger.verbose for telegram emits, logger.info for everything not scary, warn for kinda, err for errors
