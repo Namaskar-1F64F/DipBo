@@ -2,7 +2,6 @@ const express = require('express'),
 app = express(),
 port = parseInt(process.env.PORT, 10) || 3000,
 host = '0.0.0.0';
-app.listen(port,host);
 var setup        = require('./setup.js'), // Setting up objects
     webpage      = require('./webpage.js'), // Webpage scraping
     util         = require('./util.js'),
@@ -46,3 +45,12 @@ telegram.on("text", function (message) {
         + "[Visit the GitHub](https://github.com/Timone/WebDiplomacyTelegramBot)", {parse_mode: "Markdown"});
     }
 });
+
+app.post('/' + process.env.TELEGRAM_API_KEY, (req, res) => {
+    telegram.processUpdate(req.body);
+    res.sendStatus(200);
+});
+app.get('/', (req, res) => {
+    res.redirect('https://github.com/timone/webdiplomacybot');
+});
+app.listen(port,host);
