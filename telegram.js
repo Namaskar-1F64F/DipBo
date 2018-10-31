@@ -3,8 +3,16 @@ var util = require('./util.js'),
     diplomacy = require('./diplomacy'),
     telegramBot= require('node-telegram-bot-api');
 
+    let bot;
+    if(process.env.NODE_ENV === 'production') {
+        bot = new Bot(process.env.TELEGRAM_API_KEY);
+        bot.setWebHook(process.env.URL + bot.token);
+      }
+      else {
+        bot = new Bot(process.env.TELEGRAM_API_KEY, { polling: true });
+      }
 module.exports = {
-    telegram: new telegramBot(process.env.TELEGRAM_API_KEY, {polling: true}),
+    telegram: bot,
     getBot: function(){
         return this.telegram;
     }
