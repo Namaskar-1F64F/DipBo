@@ -1,23 +1,17 @@
-# Welcome to WebDiplomacy Telegram Bot
->The bot to support all your Webdiplomacy -> Telegram needs!
+## Hi, I'm DipBo!
 
-This bot is intended for use of monitoring one or multiple Webdiplomacy games by periodically taking a snapshot of the
-page and detecting changes. This bot will send updates for:
+I am able to watch a diplomacy game and give you updates on the game. To get started, find the game ID (found in the URL of a game). After that, send in this chat `/monitor <GAME_ID>` to start getting updates from me!
 
-- Global messages
-- When players ready
-- Phase changes
+To stop monitoring, send the command `/stop` and I'll leave you alone :(
 
-Running
+Questions? t.me/svendog
+
+Here are the .env variables you need to set up! If you don't include a specific TOKEN, that bot will not run :)
+
 ```
-npm install
-node index.js
+LOG_DIRECTORY
+REFRESH_INTERVAL_MINUTES
+MONGO_CONNECTION_STRING
+DIPLOMACY_DISCORD_TOKEN
+DIPLOMACY_TELEGRAM_TOKEN
 ```
-
-You will need to supply your own Telegram BOT API KEY in the telegram.js file
-
-HOW?
-1. Run Server
-2. Add @WebDiplomacyTelegramBot to telegram
-3. Send command "/monitor <game ID>" with the WebDiplomacy Game ID (can be found in the URL for your game)
-4. Bask in the updates.

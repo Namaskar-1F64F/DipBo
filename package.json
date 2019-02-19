@@ -1,26 +1,105 @@
 {
-  "name": "sven",
+  "name": "MultipleBotBoilerplate",
   "version": "1.0.0",
-  "description": "webdip telegram bot",
-  "main": "index.js",
-  "scripts": {
-    "start:dev": "node index.js",
-    "start:prod": "node index.js",
-    "start": "node index.js"
-  },
-  "dependencies": {
-    "body-parser": "^1.18.3",
-    "debug": "^2.6.3",
-    "express": "4.16.4",
-    "forever": "^0.15.3",
-    "jsdom": "^9.12.0",
-    "node-emoji": "^1.5.1",
-    "node-telegram-bot-api": "^0.27.0",
-    "object-hash": "^1.1.7",
-    "sanitize-html": "^1.14.1",
-    "winston": "^2.3.1"
-  },
-  "devDependencies": {},
+  "description": "Telegram and discord bots.",
+  "repository": "",
   "author": "",
-  "license": "ISC"
+  "license": "MIT",
+  "main": "dist/index.js",
+  "scripts": {
+    "prestart": "npm run -s build",
+    "start": "node dist/index.js",
+    "dev": "nodemon src/index.js --exec \"node -r dotenv/config -r babel-register\"",
+    "clean": "rimraf dist",
+    "build": "npm run clean && mkdir dist && babel src -s -D -d dist",
+    "test": "jest --watch",
+    "lint": "esw -w src test"
+  },
+  "keywords": [
+    "express",
+    "babel",
+    "boilerplate",
+    "scaffold",
+    "telegram",
+    "discord"
+  ],
+  "dependencies": {
+    "babel-cli": "^6.26.0",
+    "babel-plugin-transform-class-properties": "^6.24.1",
+    "babel-plugin-transform-object-rest-spread": "^6.26.0",
+    "babel-preset-env": "^1.7.0",
+    "body-parser": "^1.18.3",
+    "date-fns": "^1.30.1",
+    "discord.js": "^11.4.2",
+    "express": "^4.16.4",
+    "find-process": "^1.2.1",
+    "jquery": "^3.3.1",
+    "jsdom": "^13.2.0",
+    "moment": "^2.23.0",
+    "mongodb": "^3.1.13",
+    "morgan": "^1.9.1",
+    "node-emoji": "^1.10.0",
+    "node-telegram-bot-api": "^0.30.0",
+    "pug": "^2.0.3",
+    "randexp": "^0.5.3",
+    "rimraf": "^2.6.3",
+    "sanitize-html": "^1.20.0",
+    "twilio": "^3.28.1",
+    "winston": "^3.2.1",
+    "winston-daily-rotate-file": "^3.7.0"
+  },
+  "devDependencies": {
+    "babel-eslint": "^10.0.1",
+    "babel-jest": "^24.1.0",
+    "babel-register": "^6.26.0",
+    "dotenv": "^6.2.0",
+    "eslint": "^5.14.1",
+    "eslint-plugin-import": "^2.16.0",
+    "eslint-plugin-jest": "^22.3.0",
+    "eslint-watch": "^4.0.2",
+    "jest": "^24.1.0",
+    "nodemon": "^1.18.10",
+    "supertest": "^3.4.2"
+  },
+  "babel": {
+    "presets": [
+      [
+        "env",
+        {
+          "targets": {
+            "node": "current"
+          }
+        }
+      ]
+    ],
+    "plugins": [
+      "transform-object-rest-spread",
+      "transform-class-properties"
+    ]
+  },
+  "eslintConfig": {
+    "parser": "babel-eslint",
+    "plugins": [
+      "import",
+      "jest"
+    ],
+    "parserOptions": {
+      "ecmaVersion": 2019,
+      "sourceType": "module"
+    },
+    "env": {
+      "node": true,
+      "jest": true
+    },
+    "extends": [
+      "eslint:recommended"
+    ],
+    "rules": {
+      "jest/no-focused-tests": 2,
+      "jest/no-identical-title": 2
+    }
+  },
+  "jest": {
+    "testEnvironment": "node"
+  }
 }
