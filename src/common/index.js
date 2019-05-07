@@ -57,7 +57,7 @@ I am able to watch a diplomacy game and give you updates on the game. To get sta
 
 To stop monitoring, send the command \`/stop\` and I'll leave you alone :(
 
-Questions? t.me/svendog`;
+Questions? t.me/sveyn`;
       Logger.verbose(message);
       sendMessage(id, message, { parse_mode: "Markdown" });
     }
