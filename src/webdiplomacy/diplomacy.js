@@ -34,8 +34,8 @@ const checkWebsite = async (cid, gid) => {
   Logger.info(`Checking game: ${gid} for user: ${cid}.`);
   JSDOM.fromURL(`https://webdiplomacy.net/board.php?gameID=${gid}`, {
     beforeParse(window) {
-      if (window != null) window.Date.prototype.getTimezoneOffset = function () { return 240; };
-  }}).then(async dom => {
+      window.Date.prototype.getTimezoneOffset = function () { return 240; };
+  }, runScripts: "outside-only" }).then(async dom => {
     let context = new SnapshotContext({
       window: dom.window,
       countries: ["England", "France", "Italy", "Germany", "Austria", "Turkey", "Russia"],
