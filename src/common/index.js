@@ -36,18 +36,28 @@ initialize().then(async success => {
       }
     }
 
-    const monitorCommand = ({ id, gid }) => {
+    const monitorCommand = async ({ id, gid }) => {
       if (gid == null) {
         const message = `Sorry, I can't monitor everything, ha!\n\`/monitor <Your game ID goes here, please :)>\``;
         Logger.verbose(message);
         sendMessage(id, message, { parse_mode: 'Markdown' });
         return;
       }
-      add(id, gid);
+      const success = await add(id, gid);
+      if (success) {
+        sendMessage(id, `You will now receive updates for game ${gid}.`);
+      } else {
+        sendMessage(id, `Maybe you're already monitoring a game, maybe I'm bad at programming.`);
+      }
     }
 
-    const stopCommand = ({ id }) => {
-      stop(id);
+    const stopCommand = async ({ id }) => {
+      const success = await stop(id);
+      if (success.deletedCount) {
+        sendMessage(id, `You will no longer receive updates.`);
+      } else {
+        sendMessage(id, `I don't think you're subscribed to any updates...`);
+      }
     }
 
     const helpCommand = ({ id }) => {

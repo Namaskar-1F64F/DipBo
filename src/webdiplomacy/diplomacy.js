@@ -1,5 +1,5 @@
 import Logger from '../common/logger';
-import { sendMessage } from '../interface';
+import { sendMessage, sendPhoto } from '../interface';
 import { GameSnapshot, getPreviousState } from '../common/setup';
 import { getContext } from './webpage';
 import { JSDOM } from 'jsdom';
@@ -54,7 +54,7 @@ const checkWebsite = async (cid, gid) => {
     const newPhase = detectPhaseChange(context);
     if (newPhase) {
       Logger.verbose(`Sending photo-phase change to ${cid} for ${gid}:\n${newPhase.message}`);
-      sendMessage(cid, `https://webdiplomacy.net/map.php?mapType=large&gameID=${gid}&turn=500&cache=${Math.random().toString(36).slice(2)}`, { caption: newPhase.message });
+      sendPhoto(cid, `https://webdiplomacy.net/map.php?mapType=large&gameID=${gid}&turn=500&cache=${Math.random().toString(36).slice(2)}`, { caption: newPhase.message });
       context.currentState.phase = newPhase.phase;
       context.currentState.year = newPhase.year;
     } else {
@@ -125,13 +125,20 @@ ${getEmoji('mantelpiece_clock')} ${season == 'Autumn' ? 'Spring' : 'Autumn'} at 
 }
 
 const detectReadyChange = ({ countries, previousState, readyStates, phase, year, seasonEmoji, phaseEmoji, gid, timeRemaining, day, timestamp }) => {
-  const numWithOrders = countries.length - readyStates.status.none.length - readyStates.status.defeated.length;
-  const numToDisplay = numWithOrders - 3 > 0 ? numWithOrders - 3 : 0;
-  if (!previousState.initialRun
-    && previousState.readyStates.status.ready.length != readyStates.status.ready.length
-    && readyStates.status.ready.length > numToDisplay
+  const { status: {
+    none = [],
+    defeated = [],
+    ready = [],
+    completed = [],
+    notreceived = [],
+  } = {}} = readyStates;
+  const { initialRun, readyStates: {
+    status: { ready: previousReady = [] } = {}
+  } = {}} = previousState;
+  if (!initialRun
+    && previousReady.length != ready.length
+    && ready.length > (Math.floor(countries.length / 2) - none.length - defeated.length)
     && phase != undefined) {
-    const { ready, completed, notreceived } = readyStates.status;
     const message = `*${seasonEmoji} ${year} - *${phaseEmoji} [${phase}](https://webdiplomacy.net/board.php?gameID=${gid})
 *Ready*        ${ready.map(getEmoji).join('')}
 *Not ready* ${completed.concat(notreceived).map(getEmoji).join('')}

@@ -48,7 +48,7 @@ export const removeGame = async (cid) => {
   try {
     cid = String(cid);
     Logger.info(`DB: removeGame with cid ${cid}.`);
-    await getCollection().remove({ cid });
+    await getCollection().deleteOne({ cid });
     return true
   }
   catch (error) {
@@ -102,8 +102,7 @@ export const removeSubscription = async (cid) => {
   try {
     cid = String(cid);
     Logger.info(`DB: removeSubscription with cid ${cid}.`);
-    await getCollection('Subscription').remove({ cid });
-    return true
+    return await getCollection('Subscription').deleteOne({ cid });
   }
   catch (error) {
     Logger.error(error.stack);

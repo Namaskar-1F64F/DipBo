@@ -6,7 +6,13 @@ class GameSnapshot {
   year = '';
   phase = '';
   readyStates = {
-    status: {},
+    status: {
+      defeated: [],
+      ready: [],
+      completed: [],
+      notreceived: [],
+      none: [],
+    },
     countries: {},
     readyCount: 0
   };

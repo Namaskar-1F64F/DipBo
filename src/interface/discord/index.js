@@ -15,7 +15,21 @@ export const sendDiscordMessage = ({id}, { text }) => {
   if (id != null) {
     const channel = bot.channels.find(channel => channel.id == id);
     if (channel == null) throw new Error(`No channel found with ID ${id}`);
-    channel.send(text).catch(error => Logger.error(error.stack));
+    channel.send({ embed: {
+      description: text,
+    }}).catch(error => Logger.error(error.stack));  }
+}
+
+export const sendDiscordPhoto = ({id}, url, options) => {
+  if (id != null) {
+    const channel = bot.channels.find(channel => channel.id == id);
+    if (channel == null) throw new Error(`No channel found with ID ${id}`);
+    channel.send({ embed: {
+      title: options.caption,
+      image: {
+        url,
+      },
+    }}).catch(error => Logger.error(error.stack));
   }
 }
 

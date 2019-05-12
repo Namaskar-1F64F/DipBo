@@ -10,6 +10,7 @@ export const add = async (cid, gid) => {
       await addSubscription(cid, gid);
       return start(cid, gid);
     }
+    return false;
   }
   catch (err) {
     Logger.error(`Tried to add game with ID ${gid} for chat ${cid}, but got an error: ${err}`);
@@ -21,23 +22,23 @@ export const start = async (cid, gid) => {
   checkWebsite(cid, gid);
   intervals[cid] = setInterval(function () {
     checkWebsite(cid, gid);
-  }, process.env.REFRESH_INTERVAL_MINUTES || 6 * 60 * 1000);
+  }, (process.env.REFRESH_INTERVAL_MINUTES || 6) * 60 * 1000);
+  return true;
 }
 
-export const stop = (cid) => {
+export const stop = async (cid) => {
   clearInterval(intervals[cid]);
-  removeSubscription(cid);
+  return await removeSubscription(cid);
 };
 
 export const init = async () => {
   const subscriptions = await getSubscriptions();
   if (subscriptions) {
-    console.log(subscriptions);
-    const slice = (process.env.REFRESH_INTERVAL_MINUTES || 6 * 60 * 1000) / subscriptions.length;
+    const slice = ((process.env.REFRESH_INTERVAL_MINUTES || 6) * 60 * 1000) / subscriptions.length;
     subscriptions.forEach((subscription, idx) => {
       const { cid, gid } = subscription;
       const interval = slice * idx;
-      Logger.info(`Auto starting game ${cid} for chat ${gid} at time t+${interval}`);
+      Logger.info(`Auto starting game ${gid} for chat ${cid} at time t+${interval}`);
       setTimeout(start, interval, cid, gid);
     });
   }
