@@ -40,7 +40,7 @@ const getSeasonEmoji = (window) => {
 };
 
 const getUnixFinal = (window) => {
-  const span = window.document.querySelector('.timestamp');
+  const span = window.document.querySelector('.timeremaining');
   if (!span) return 0;
   const time = parseInt(span.attributes.getNamedItem('unixtime').value);
   if (!time) return 0;
