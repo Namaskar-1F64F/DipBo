@@ -38,7 +38,8 @@ const emojiMap = new Map([
   ['retreats', 'waving_white_flag'],
   ['diplomacy', 'globe_with_meridians'],
   ['moderator', 'police_car'],
-  ['country', 'waving_black_flag']
+  ['country', 'waving_black_flag'],
+  ['pre-game', 'building_construction']
 ]);
 
 const getEmoji = (phrase) => { // easier to lookup and return country flags so case doesn't mess us up
